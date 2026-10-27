@@ -123,25 +123,29 @@ if (!defined('BASE_URL')) {
             margin-bottom: 0.4rem;
         }
 
+        /* ESTILOS CORREGIDOS PARA SELECTORES E INPUTS */
         .form-control {
             width: 100%;
             padding: 0.75rem 1rem;
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background: #161b22 !important;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff !important;
             outline: none;
             box-sizing: border-box;
             font-family: inherit;
+            font-size: 0.95rem;
         }
 
         .form-control:focus {
             border-color: #cca462;
+            box-shadow: 0 0 0 2px rgba(204, 164, 98, 0.2);
         }
 
         .form-control option {
-            background-color: #0d1117;
-            color: #ffffff;
+            background-color: #0d1117 !important;
+            color: #ffffff !important;
+            padding: 10px;
         }
     </style>
 </head>
@@ -169,26 +173,40 @@ if (!defined('BASE_URL')) {
                     <table style="width: 100%; border-collapse: collapse; color: white; text-align: left;">
                         <thead>
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #cca462;">
-                                <th style="padding: 1rem;"># ID</th>
-                                <th style="padding: 1rem;">Cliente ID</th>
-                                <th style="padding: 1rem;">Habitación ID</th>
+                                <th style="padding: 1rem;">#</th>
+                                <th style="padding: 1rem;">Hotel</th>
+                                <th style="padding: 1rem;"># Habitación</th>
                                 <th style="padding: 1rem;">Check-In</th>
                                 <th style="padding: 1rem;">Check-Out</th>
                                 <th style="padding: 1rem;">Estado</th>
+                                <th style="padding: 1rem; text-align: center;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($reservas as $reserva): ?>
+                            <?php foreach ($reservas as $index => $reserva): ?>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['id_reserva']) ?></td>
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['id_cliente']) ?></td>
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['id_habitacion']) ?></td>
+                                    <td style="padding: 1rem;"><?= $index + 1 ?></td>
+                                    <td style="padding: 1rem;">
+                                        <span style="font-weight: bold; display: block; font-size: 0.75rem; color: #8b949e; text-transform: uppercase;">Hotel</span>
+                                        <span><?= htmlspecialchars($reserva['nombre_hotel'] ?? 'No asignado') ?></span>
+                                    </td>
+                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['numero_habitacion'] ?? $reserva['id_habitacion']) ?></td>
                                     <td style="padding: 1rem;"><?= htmlspecialchars($reserva['fecha_checkin']) ?></td>
                                     <td style="padding: 1rem;"><?= htmlspecialchars($reserva['fecha_checkout']) ?></td>
                                     <td style="padding: 1rem;">
                                         <span style="background: rgba(204, 164, 98, 0.15); color: #cca462; padding: 0.3rem 0.8rem; border-radius: 10px; font-size: 0.85rem; border: 1px solid rgba(204, 164, 98, 0.3);">
                                             <?= htmlspecialchars($reserva['estado_reserva']) ?>
                                         </span>
+                                    </td>
+                                    <!-- Botón de cancelación con la X en la zona solicitada -->
+                                    <td style="padding: 1rem; text-align: center;">
+                                        <a href="<?= BASE_URL ?>index.php?url=reservas/cancelar&id=<?= $reserva['id_reserva'] ?>" 
+                                           style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255, 75, 75, 0.15); color: #ff4b4b; border-radius: 10px; text-decoration: none; font-weight: bold; border: 1px solid rgba(255, 75, 75, 0.3); transition: all 0.2s;"
+                                           title="Cancelar reserva"
+                                           onmouseover="this.style.background='rgba(255, 75, 75, 0.3)'"
+                                           onmouseout="this.style.background='rgba(255, 75, 75, 0.15)'">
+                                           ✕
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -207,6 +225,7 @@ if (!defined('BASE_URL')) {
         </main>
     </div>
 
+    <!-- MODAL DE NUEVA RESERVA -->
     <div class="modal-overlay" id="modalReserva">
         <div class="modal-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -215,25 +234,31 @@ if (!defined('BASE_URL')) {
             </div>
 
             <form action="<?= BASE_URL ?>index.php?url=reservas/crear" method="POST">
-                <!-- CAMPO HOTEL (Visual/Informativo, ya no rompe la inserción) -->
+                <input type="hidden" name="id_cliente" value="1">
+
                 <div class="form-group">
                     <label>Hotel</label>
-                    <select class="form-control" required>
+                    <select id="selectHotel" class="form-control" required>
                         <option value="">Selecciona un hotel</option>
-                        <option value="1">Grand Hotel Zleep</option>
-                        <option value="2">Zleep Boutique & Spa</option>
-                        <option value="3">Hotel Zleep Central</option>
+                        <?php if (!empty($hoteles)): ?>
+                            <?php foreach ($hoteles as $hotel): ?>
+                                <option value="<?= $hotel['id_hotel'] ?>"><?= htmlspecialchars($hotel['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </select>
                 </div>
 
-                <!-- CAMPO HABITACIÓN -->
                 <div class="form-group">
                     <label>Habitación / Tipo</label>
-                    <select name="id_habitacion" class="form-control" required>
+                    <select name="id_habitacion" id="selectHabitacion" class="form-control" required>
                         <option value="">Selecciona una opción</option>
-                        <option value="1">Suite Deluxe 101</option>
-                        <option value="2">Habitación Estándar 204</option>
-                        <option value="3">Penthouse 501</option>
+                        <?php if (!empty($habitaciones)): ?>
+                            <?php foreach ($habitaciones as $hab): ?>
+                                <option value="<?= $hab['id_habitacion'] ?>" data-hotel="<?= $hab['id_hotel'] ?>">
+                                    Habitación <?= htmlspecialchars($hab['numero']) ?> - <?= htmlspecialchars($hab['tipo']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </select>
                 </div>
 
@@ -256,21 +281,40 @@ if (!defined('BASE_URL')) {
         </div>
     </div>
 
+    <!-- SCRIPT PARA MODAL Y FILTRADO DINÁMICO DE HABITACIONES -->
     <script>
         function openModal() {
-            document.getElementById('modalReserva').classList.add('active');
+            const modal = document.getElementById('modalReserva');
+            if (modal) {
+                modal.classList.add('active');
+            }
         }
 
         function closeModal() {
-            document.getElementById('modalReserva').classList.remove('active');
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('mainSidebar');
-            if (sidebar) {
-                sidebar.classList.toggle('collapsed');
+            const modal = document.getElementById('modalReserva');
+            if (modal) {
+                modal.classList.remove('active');
             }
         }
+
+        // Filtrar habitaciones según el hotel seleccionado
+        document.getElementById('selectHotel').addEventListener('change', function() {
+            const hotelId = this.value;
+            const habitacionSelect = document.getElementById('selectHabitacion');
+            const opciones = habitacionSelect.querySelectorAll('option');
+
+            habitacionSelect.value = ""; // Resetear selección
+
+            opciones.forEach(option => {
+                if (option.value === "") return; // Mantener la opción por defecto
+                const hotelAsociado = option.getAttribute('data-hotel');
+                if (!hotelId || hotelAsociado === hotelId) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
-</html>
+</html>s

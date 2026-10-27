@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nuevoNombreHotel = trim($_POST['nombre_hotel'] ?? '');
     $nuevoNit         = trim($_POST['nit'] ?? '');
     $nuevaDireccion   = trim($_POST['direccion'] ?? '');
+    $nuevaPassword    = trim($_POST['password'] ?? '');
     
     if (!empty($nuevoNombreHotel)) {
         $_SESSION['hotel_nombre'] = $nuevoNombreHotel;
@@ -42,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0;
             background-color: #05070a;
             color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .full-page-container {
             width: 100%;
@@ -111,6 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 0.95rem;
             outline: none;
+            box-sizing: border-box;
             transition: border-color 0.2s ease;
         }
         .form-group input:focus, .form-group textarea:focus {
@@ -242,6 +245,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="text" id="direccion" name="direccion" value="Calle 100 # 15-20, Bogotá" placeholder="Ej. Av. Principal #45-12">
                         </div>
 
+                        <!-- CAMPO DE CONTRASEÑA INTERACTIVO PARA EL SOCIO -->
+                        <div class="form-group full-width">
+                            <label for="password">Contraseña de Acceso *</label>
+                            <input type="password" id="passwordInput" name="password" class="form-control" placeholder="••••••••">
+                            
+                            <!-- Caja de requisitos visuales -->
+                            <div class="password-requirements" style="margin-top: 0.8rem; background: #05070a; padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: #8b949e;">Requisitos de la contraseña:</p>
+                                <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.82rem;">
+                                    <li id="req-length" style="color: #f43f5e; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.2s;">
+                                        <span class="icon">✕</span> Mínimo 8 caracteres
+                                    </li>
+                                    <li id="req-upper" style="color: #f43f5e; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.2s;">
+                                        <span class="icon">✕</span> Al menos una letra mayúscula
+                                    </li>
+                                    <li id="req-lower" style="color: #f43f5e; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.2s;">
+                                        <span class="icon">✕</span> Al menos una letra minúscula
+                                    </li>
+                                    <li id="req-number" style="color: #f43f5e; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.2s;">
+                                        <span class="icon">✕</span> Al menos un número
+                                    </li>
+                                    <li id="req-special" style="color: #f43f5e; margin: 0; display: flex; align-items: center; gap: 0.4rem; transition: color 0.2s;">
+                                        <span class="icon">✕</span> Al menos un símbolo especial (! @ # $ % & * _)
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
                         <div class="form-group full-width">
                             <label for="descripcion">Descripción Comercial</label>
                             <textarea id="descripcion" name="descripcion" rows="4" placeholder="Describe los atractivos de tu hospedaje...">Hotel enfocado en la comodidad corporativa y turística, ofreciendo estancias seguras, conectividad de alta velocidad y un servicio personalizado.</textarea>
@@ -259,5 +290,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
+    <!-- SCRIPT DE VALIDACIÓN EN TIEMPO REAL -->
+    <script>
+        const passwordInput = document.getElementById('passwordInput');
+        const reqLength = document.getElementById('req-length');
+        const reqUpper = document.getElementById('req-upper');
+        const reqLower = document.getElementById('req-lower');
+        const reqNumber = document.getElementById('req-number');
+        const reqSpecial = document.getElementById('req-special');
+
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                const val = passwordInput.value;
+
+                // 1. Longitud mínima (8 caracteres)
+                validateRequirement(val.length >= 8, reqLength);
+
+                // 2. Letra mayúscula
+                validateRequirement(/[A-Z]/.test(val), reqUpper);
+
+                // 3. Letra minúscula
+                validateRequirement(/[a-z]/.test(val), reqLower);
+
+                // 4. Número
+                validateRequirement(/[0-9]/.test(val), reqNumber);
+
+                // 5. Carácter especial
+                validateRequirement(/[!@#$%&*_\-_]/.test(val), reqSpecial);
+            });
+        }
+
+        function validateRequirement(isValid, element) {
+            const icon = element.querySelector('.icon');
+            if (isValid) {
+                element.style.color = '#10b981'; // Color verde de éxito
+                icon.textContent = '✓';
+            } else {
+                element.style.color = '#f43f5e'; // Color rojo de error
+                icon.textContent = '✕';
+            }
+        }
+    </script>
 </body>
 </html>

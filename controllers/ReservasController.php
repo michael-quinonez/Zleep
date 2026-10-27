@@ -18,6 +18,23 @@ class ReservasController {
         $reservaModel = new Reserva();
         $reservas = $reservaModel->obtenerTodas();
 
+        // Obtener hoteles y habitaciones directamente por PDO para evitar archivos de modelo faltantes
+        $hoteles = [];
+        $habitaciones = [];
+        
+        try {
+            $conexion = new PDO('mysql:host=localhost;dbname=zleep_db;charset=utf8', 'root', '');
+            $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $stmtH = $conexion->query("SELECT * FROM hoteles");
+            $hoteles = $stmtH->fetchAll(PDO::FETCH_ASSOC);
+
+            $stmtHab = $conexion->query("SELECT * FROM habitaciones");
+            $habitaciones = $stmtHab->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Manejo silencioso si ocurre algún detalle de conexión
+        }
+
         require_once __DIR__ . '/../views/reservas/index.php';
     }
 
@@ -26,7 +43,6 @@ class ReservasController {
             $id_cliente     = $_SESSION['usuario_id'] ?? $_SESSION['user_id'] ?? 1;
             $id_habitacion  = $_POST['id_habitacion'] ?? 1;
             
-            // Capturamos las fechas enviadas desde los inputs del modal
             $fecha_checkin  = $_POST['fecha_checkin'] ?? null;
             $fecha_checkout = $_POST['fecha_checkout'] ?? null;
             $total_pago     = 150.00;

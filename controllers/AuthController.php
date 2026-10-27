@@ -68,7 +68,6 @@ class AuthController {
             if (empty($nombre) || empty($email) || empty($password)) {
                 $error = "Por favor completa todos los campos.";
             } elseif (!preg_match($patronPassword, $password)) {
-                // Dejamos vacío el error general para que la interfaz interactiva maneje la contraseña abajo
                 $error = ""; 
             } else {
                 $userModel = new Usuario();
@@ -98,7 +97,7 @@ class AuthController {
         }
     }
 
-    // Método principal de registro de hotel con validaciones de seguridad
+    // Método principal de registro de hotel con columnas exactas basadas en la base de datos
     public function registerHotel() {
         $error = '';
         
@@ -139,8 +138,8 @@ class AuthController {
                     if ($userModel->buscarPorEmail($email)) {
                         $error = "El correo electrónico ya está registrado.";
                     } else {
-                        // Verificar si el NIT ya está registrado para evitar duplicidad maliciosa
-                        $stmtNit = $pdo->prepare("SELECT id FROM hoteles WHERE nit = ?");
+                        // Verificar si el NIT ya está registrado
+                        $stmtNit = $pdo->prepare("SELECT id_hotel FROM hoteles WHERE nit = ?");
                         $stmtNit->execute([$nit]);
                         if ($stmtNit->rowCount() > 0) {
                             $error = "El NIT ingresado ya se encuentra registrado en el sistema.";
@@ -152,9 +151,9 @@ class AuthController {
                             $stmtUser->execute([$nombre, $email, password_hash($password, PASSWORD_DEFAULT), $rol_id]);
                             $usuario_id = $pdo->lastInsertId();
 
-                            // 2. Inserción de los datos del hotel
-                            $stmtHotel = $pdo->prepare("INSERT INTO hoteles (usuario_id, nombre_hotel, nit, direccion) VALUES (?, ?, ?, ?)");
-                            $stmtHotel->execute([$usuario_id, $nombre_hotel, $nit, $direccion]);
+                            // 2. Inserción de los datos del hotel usando 'usuario_id' y 'nombre' tal como muestra la tabla
+                            $stmtHotel = $pdo->prepare("INSERT INTO hoteles (usuario_id, nombre, nit, direccion, ciudad) VALUES (?, ?, ?, ?, ?)");
+                            $stmtHotel->execute([$usuario_id, $nombre_hotel, $nit, $direccion, 'Bogotá']);
 
                             $pdo->commit();
 
