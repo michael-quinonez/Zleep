@@ -50,7 +50,8 @@ if (!defined('BASE_URL')) {
 
                 <div class="form-group">
                     <label for="password">Contraseña *</label>
-                    <input type="password" id="password" name="password" required placeholder="••••••••">
+                    <input type="password" id="password" name="password" required minlength="6" placeholder="••••••••">
+                    <small style="color: #8b949e; font-size: 0.75rem; margin-top: 0.3rem; display: block;">Mínimo 6 caracteres y al menos una letra mayúscula.</small>
                 </div>
 
                 <h4 style="color: #8b949e; margin: 1.5rem 0 0.8rem 0; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">Información del Establecimiento</h4>

@@ -138,6 +138,11 @@ if (!defined('BASE_URL')) {
         .form-control:focus {
             border-color: #cca462;
         }
+
+        .form-control option {
+            background-color: #0d1117;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -165,24 +170,24 @@ if (!defined('BASE_URL')) {
                         <thead>
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #cca462;">
                                 <th style="padding: 1rem;"># ID</th>
-                                <th style="padding: 1rem;">Habitación</th>
-                                <th style="padding: 1rem;">Huésped</th>
-                                <th style="padding: 1rem;">Ingreso</th>
-                                <th style="padding: 1rem;">Salida</th>
+                                <th style="padding: 1rem;">Cliente ID</th>
+                                <th style="padding: 1rem;">Habitación ID</th>
+                                <th style="padding: 1rem;">Check-In</th>
+                                <th style="padding: 1rem;">Check-Out</th>
                                 <th style="padding: 1rem;">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($reservas as $reserva): ?>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['id']) ?></td>
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['habitacion']) ?></td>
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['huesped']) ?></td>
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['fecha_ingreso']) ?></td>
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['fecha_salida']) ?></td>
+                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['id_reserva']) ?></td>
+                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['id_cliente']) ?></td>
+                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['id_habitacion']) ?></td>
+                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['fecha_checkin']) ?></td>
+                                    <td style="padding: 1rem;"><?= htmlspecialchars($reserva['fecha_checkout']) ?></td>
                                     <td style="padding: 1rem;">
                                         <span style="background: rgba(204, 164, 98, 0.15); color: #cca462; padding: 0.3rem 0.8rem; border-radius: 10px; font-size: 0.85rem; border: 1px solid rgba(204, 164, 98, 0.3);">
-                                            <?= htmlspecialchars($reserva['estado']) ?>
+                                            <?= htmlspecialchars($reserva['estado_reserva']) ?>
                                         </span>
                                     </td>
                                 </tr>
@@ -210,29 +215,36 @@ if (!defined('BASE_URL')) {
             </div>
 
             <form action="<?= BASE_URL ?>index.php?url=reservas/crear" method="POST">
+                <!-- CAMPO HOTEL (Visual/Informativo, ya no rompe la inserción) -->
                 <div class="form-group">
-                    <label>Nombre del Huésped</label>
-                    <input type="text" name="huesped" class="form-control" placeholder="Ej: Carlos Mendoza" required>
+                    <label>Hotel</label>
+                    <select class="form-control" required>
+                        <option value="">Selecciona un hotel</option>
+                        <option value="1">Grand Hotel Zleep</option>
+                        <option value="2">Zleep Boutique & Spa</option>
+                        <option value="3">Hotel Zleep Central</option>
+                    </select>
                 </div>
 
+                <!-- CAMPO HABITACIÓN -->
                 <div class="form-group">
                     <label>Habitación / Tipo</label>
-                    <select name="habitacion" class="form-control" required>
+                    <select name="id_habitacion" class="form-control" required>
                         <option value="">Selecciona una opción</option>
-                        <option value="Suite Deluxe 101">Suite Deluxe 101</option>
-                        <option value="Habitación Estándar 204">Habitación Estándar 204</option>
-                        <option value="Penthouse 501">Penthouse 501</option>
+                        <option value="1">Suite Deluxe 101</option>
+                        <option value="2">Habitación Estándar 204</option>
+                        <option value="3">Penthouse 501</option>
                     </select>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
                         <label>Fecha de Check-In</label>
-                        <input type="date" name="fecha_ingreso" class="form-control" required>
+                        <input type="date" name="fecha_checkin" class="form-control" required>
                     </div>
                     <div class="form-group">
                         <label>Fecha de Check-Out</label>
-                        <input type="date" name="fecha_salida" class="form-control" required>
+                        <input type="date" name="fecha_checkout" class="form-control" required>
                     </div>
                 </div>
 

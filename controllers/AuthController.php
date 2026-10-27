@@ -27,14 +27,24 @@ class AuthController {
                         session_start();
                     }
 
+                    // Determinar el rol_id desde la base de datos
+                    $rolId = $usuario['rol_id'] ?? 1;
+
                     $_SESSION['usuario_id']     = $usuario['id'] ?? $usuario['id_usuario'];
                     $_SESSION['usuario_nombre'] = $usuario['nombre'];
                     $_SESSION['usuario_email']  = $usuario['email'];
-                    $_SESSION['usuario_rol_id'] = $usuario['rol_id'];
-                    $_SESSION['usuario_rol']    = 'hotel_admin';
+                    $_SESSION['usuario_rol_id'] = $rolId;
 
-                    header("Location: " . BASE_URL . "index.php");
-                    exit();
+                    // Asignación dinámica de rol y redirección al Dashboard principal
+                    if ($rolId == 4) {
+                        $_SESSION['usuario_rol'] = 'hotel_admin';
+                        header("Location: " . BASE_URL . "index.php?url=dashboard");
+                        exit();
+                    } else {
+                        $_SESSION['usuario_rol'] = 'cliente';
+                        header("Location: " . BASE_URL . "index.php?url=dashboard");
+                        exit();
+                    }
                 }
             } else {
                 $error = "Por favor completa todos los campos.";
@@ -52,7 +62,15 @@ class AuthController {
             $email    = trim($_POST['email'] ?? '');
             $password = trim($_POST['password'] ?? '');
 
-            if (!empty($nombre) && !empty($email) && !empty($password)) {
+            // Patrón estricto de los 5 requisitos
+            $patronPassword = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>\-_]).{8,}$/';
+
+            if (empty($nombre) || empty($email) || empty($password)) {
+                $error = "Por favor completa todos los campos.";
+            } elseif (!preg_match($patronPassword, $password)) {
+                // Dejamos vacío el error general para que la interfaz interactiva maneje la contraseña abajo
+                $error = ""; 
+            } else {
                 $userModel = new Usuario();
                 
                 if ($userModel->buscarPorEmail($email)) {
@@ -68,8 +86,6 @@ class AuthController {
                         $error = "Ocurrió un error al crear la cuenta. Intenta de nuevo.";
                     }
                 }
-            } else {
-                $error = "Por favor completa todos los campos.";
             }
         }
 
@@ -82,7 +98,7 @@ class AuthController {
         }
     }
 
-    // Método principal de registro de hotel (sin guiones)
+    // Método principal de registro de hotel con validaciones de seguridad
     public function registerHotel() {
         $error = '';
         
@@ -103,47 +119,67 @@ class AuthController {
             
             $rol_id       = 4; // Rol de Hotelero / Administrador de Hotel
 
-            if (!empty($nombre) && !empty($email) && !empty($password) && !empty($nombre_hotel)) {
+            $patronPassword = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>\-_]).{8,}$/';
+
+            // VALIDACIONES DE SEGURIDAD
+            if (empty($nombre) || empty($email) || empty($password) || empty($nombre_hotel) || empty($nit) || empty($direccion)) {
+                $error = "Por favor completa todos los campos obligatorios.";
+            } elseif (!preg_match($patronPassword, $password)) {
+                $error = ""; 
+            } elseif (strlen($nombre_hotel) < 4 || strlen($direccion) < 6) {
+                $error = "El nombre del hotel (mínimo 4 caracteres) y la dirección deben ser reales.";
+            } elseif (!preg_match('/^[0-9\-]+$/', $nit) || strlen($nit) < 6) {
+                $error = "Por favor ingresa un NIT o documento fiscal válido (solo números y guiones).";
+            } else {
                 try {
                     $userModel = new Usuario();
                     $pdo       = $userModel->getConexion();
 
-                    $pdo->beginTransaction();
+                    // Verificar si el correo ya existe
+                    if ($userModel->buscarPorEmail($email)) {
+                        $error = "El correo electrónico ya está registrado.";
+                    } else {
+                        // Verificar si el NIT ya está registrado para evitar duplicidad maliciosa
+                        $stmtNit = $pdo->prepare("SELECT id FROM hoteles WHERE nit = ?");
+                        $stmtNit->execute([$nit]);
+                        if ($stmtNit->rowCount() > 0) {
+                            $error = "El NIT ingresado ya se encuentra registrado en el sistema.";
+                        } else {
+                            $pdo->beginTransaction();
 
-                    // 1. Inserción del usuario con contraseña encriptada y rol_id
-                    $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, rol_id) VALUES (?, ?, ?, ?)");
-                    $stmtUser->execute([$nombre, $email, password_hash($password, PASSWORD_DEFAULT), $rol_id]);
-                    $usuario_id = $pdo->lastInsertId();
+                            // 1. Inserción del usuario con contraseña encriptada y rol_id
+                            $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, rol_id) VALUES (?, ?, ?, ?)");
+                            $stmtUser->execute([$nombre, $email, password_hash($password, PASSWORD_DEFAULT), $rol_id]);
+                            $usuario_id = $pdo->lastInsertId();
 
-                    // 2. Inserción de los datos del hotel
-                    $stmtHotel = $pdo->prepare("INSERT INTO hoteles (usuario_id, nombre_hotel, nit, direccion) VALUES (?, ?, ?, ?)");
-                    $stmtHotel->execute([$usuario_id, $nombre_hotel, $nit, $direccion]);
+                            // 2. Inserción de los datos del hotel
+                            $stmtHotel = $pdo->prepare("INSERT INTO hoteles (usuario_id, nombre_hotel, nit, direccion) VALUES (?, ?, ?, ?)");
+                            $stmtHotel->execute([$usuario_id, $nombre_hotel, $nit, $direccion]);
 
-                    $pdo->commit();
+                            $pdo->commit();
 
-                    // 3. Inicio de sesión automático tras el registro exitoso
-                    if (session_status() === PHP_SESSION_NONE) {
-                        session_start();
+                            // 3. Inicio de sesión automático tras el registro exitoso
+                            if (session_status() === PHP_SESSION_NONE) {
+                                session_start();
+                            }
+
+                            $_SESSION['usuario_id']     = $usuario_id;
+                            $_SESSION['usuario_nombre'] = $nombre;
+                            $_SESSION['usuario_email']  = $email;
+                            $_SESSION['usuario_rol_id'] = $rol_id;
+                            $_SESSION['usuario_rol']    = 'hotel_admin';
+                            $_SESSION['hotel_nombre']   = $nombre_hotel;
+
+                            header("Location: " . BASE_URL . "index.php?url=dashboard");
+                            exit();
+                        }
                     }
-
-                    $_SESSION['usuario_id']     = $usuario_id;
-                    $_SESSION['usuario_nombre'] = $nombre;
-                    $_SESSION['usuario_email']  = $email;
-                    $_SESSION['usuario_rol_id'] = $rol_id;
-                    $_SESSION['usuario_rol']    = 'hotel_admin';
-                    $_SESSION['hotel_nombre']   = $nombre_hotel;
-
-                    header("Location: " . BASE_URL . "index.php");
-                    exit();
-
                 } catch (Exception $e) {
                     if (isset($pdo) && $pdo->inTransaction()) {
                         $pdo->rollBack();
                     }
                     $error = "Error al registrar el hotel: " . $e->getMessage();
                 }
-            } else {
-                $error = "Por favor completa todos los campos obligatorios.";
             }
         }
 

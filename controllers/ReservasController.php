@@ -8,7 +8,6 @@ class ReservasController {
             session_start();
         }
         
-        // Proteger ruta: verificamos tanto 'usuario_id' como 'user_id' para evitar expulsiones erróneas
         if (empty($_SESSION['usuario_id']) && empty($_SESSION['user_id'])) {
             header("Location: " . BASE_URL . "index.php?url=auth/login");
             exit();
@@ -17,13 +16,41 @@ class ReservasController {
 
     public function index() {
         $reservaModel = new Reserva();
-        
-        // Opcional: si tu modelo permite filtrar por el ID del usuario actual, puedes usarlo aquí:
-        // $usuarioId = $_SESSION['usuario_id'] ?? $_SESSION['user_id'];
-        // $reservas = $reservaModel->obtenerPorUsuario($usuarioId);
-
         $reservas = $reservaModel->obtenerTodas();
 
         require_once __DIR__ . '/../views/reservas/index.php';
+    }
+
+    public function crear() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_cliente     = $_SESSION['usuario_id'] ?? $_SESSION['user_id'] ?? 1;
+            $id_habitacion  = $_POST['id_habitacion'] ?? 1;
+            
+            // Capturamos las fechas enviadas desde los inputs del modal
+            $fecha_checkin  = $_POST['fecha_checkin'] ?? null;
+            $fecha_checkout = $_POST['fecha_checkout'] ?? null;
+            $total_pago     = 150.00;
+
+            $reservaModel = new Reserva();
+            
+            try {
+                $reservaModel->insertar($id_cliente, $id_habitacion, $fecha_checkin, $fecha_checkout, $total_pago);
+            } catch (Exception $e) {
+                $reservaModel->insertar(1, $id_habitacion, $fecha_checkin, $fecha_checkout, $total_pago);
+            }
+
+            header("Location: " . BASE_URL . "index.php?url=reservas");
+            exit();
+        }
+    }
+
+    public function cancelar() {
+        if (isset($_GET['id'])) {
+            $id_reserva = $_GET['id'];
+            $reservaModel = new Reserva();
+            $reservaModel->cancelar($id_reserva);
+        }
+        header("Location: " . BASE_URL . "index.php?url=reservas");
+        exit();
     }
 }

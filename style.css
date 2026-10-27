@@ -427,3 +427,9 @@ h3, .card-header h3 {
     font-size: 0.85rem;
     margin-bottom: 1.5rem;
 }
+
+/* Solución para las opciones de los selects en modo oscuro */
+select option {
+    background-color: #0d1117 !important;
+    color: #ffffff !important;
+}

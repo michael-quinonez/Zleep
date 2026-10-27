@@ -1,7 +1,6 @@
 <?php
 class SocioController {
     
-    // Método para mostrar el panel principal (dashboard)
     public function dashboard() {
         require_once dirname(__DIR__) . '/views/socio/dashboard.php';
     }
@@ -11,14 +10,31 @@ class SocioController {
     }
 
     public function crearHabitacion() {
-        require_once dirname(__DIR__) . '/views/socio/crear_habitacion.php';
+        $archivoVista = dirname(__DIR__) . '/views/socio/crear_habitacion.php';
+        if (file_exists($archivoVista)) {
+            require_once $archivoVista;
+        } else {
+            echo "<div style='background:#05070a; color:#fff; font-family:sans-serif; padding:3rem; text-align:center;'>
+                    <h2 style='color:#10b981; font-family:Syne,sans-serif;'>Crear Habitación</h2>
+                    <p style='color:#8b949e; margin-top:1rem;'>Crea el archivo crear_habitacion.php en la carpeta views/socio/</p><br>
+                    <a href='" . BASE_URL . "index.php?url=socio/dashboard' style='color:#cca462; font-weight:bold; text-decoration:none;'>← Volver al Dashboard</a>
+                  </div>";
+        }
     }
 
     public function habitaciones() {
-        $this->crearHabitacion();
+        $archivoVista = dirname(__DIR__) . '/views/socio/gestionar_cuartos.php';
+        if (file_exists($archivoVista)) {
+            require_once $archivoVista;
+        } else {
+            echo "<div style='background:#05070a; color:#fff; font-family:sans-serif; padding:3rem; text-align:center;'>
+                    <h2 style='color:#10b981; font-family:Syne,sans-serif;'>Gestión de Cuartos</h2>
+                    <p style='color:#8b949e; margin-top:1rem;'>Crea el archivo gestionar_cuartos.php en la carpeta views/socio/</p><br>
+                    <a href='" . BASE_URL . "index.php?url=socio/dashboard' style='color:#cca462; font-weight:bold; text-decoration:none;'>← Volver al Dashboard</a>
+                  </div>";
+        }
     }
 
-    // Método para gestionar las reservas del hotel
     public function reservas() {
         $archivoVista = dirname(__DIR__) . '/views/socio/reservas.php';
         if (file_exists($archivoVista)) {
@@ -36,7 +52,6 @@ class SocioController {
         return $this->reservas();
     }
 
-    // Método principal para la propiedad del hotel
     public function miHotel() {
         $archivoVista = dirname(__DIR__) . '/views/socio/mi_hotel.php';
         if (file_exists($archivoVista)) {
@@ -50,7 +65,6 @@ class SocioController {
         }
     }
 
-    // Alias y método mágico para capturar cualquier variante (mi-hotel, mi_hotel)
     public function mi_hotel() {
         return $this->miHotel();
     }
@@ -65,6 +79,12 @@ class SocioController {
         }
         if ($name === 'reservas' || $name === 'reservas-hotel') {
             return $this->reservas();
+        }
+        if ($name === 'habitaciones' || $name === 'gestionar-cuartos') {
+            return $this->habitaciones();
+        }
+        if ($name === 'crear' || $name === 'crear-habitacion') {
+            return $this->crearHabitacion();
         }
     }
 }

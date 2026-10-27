@@ -21,6 +21,7 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     
     <style>
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             background-color: #05070a;
@@ -79,12 +80,12 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
             font-size: 0.95rem;
         }
         th, td {
-            padding: 1rem;
+            padding: 1.1rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         th {
             color: #8b949e;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 700;
@@ -102,6 +103,45 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
             font-weight: 700;
             display: inline-block;
         }
+        /* Estilos de la ventana Modal para Detalles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 7, 10, 0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: #0d1117;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+        .detail-row {
+            margin-bottom: 1.2rem;
+        }
+        .detail-row label {
+            display: block;
+            font-size: 0.75rem;
+            color: #8b949e;
+            margin-bottom: 0.3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .detail-val {
+            font-size: 1rem;
+            color: #fff;
+            background: #05070a;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
     </style>
 </head>
 <body>
@@ -118,7 +158,7 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
                     Monitorea las solicitudes de estancia para <span style="color: #10b981; font-weight: 700;"><?= htmlspecialchars($nombreHotel) ?></span>
                 </p>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <a href="<?= BASE_URL ?>index.php?url=socio/dashboard" style="color: #8b949e; text-decoration: none; font-weight: 700; font-size: 0.9rem;">← Volver al Panel</a>
                 <a href="<?= BASE_URL ?>index.php" class="btn-home">
                     <span class="material-icons-round" style="font-size: 1.1rem;">home</span> Página Principal
@@ -142,28 +182,28 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
                             <th>Habitación</th>
                             <th>Fechas</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th style="text-align: right;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr data-id="#ZLP-4021" data-huesped="Carlos Mendoza (Tel: 300 1234567)" data-habitacion="Suite 202" data-fechas="12 Oct 2026 - 15 Oct 2026" data-estado="Confirmada" data-req="Cama extra, alérgico a las plumas, llegada estimada a las 10:00 PM.">
                             <td style="color: #cca462; font-weight: 700;">#ZLP-4021</td>
                             <td>Carlos Mendoza</td>
                             <td>Suite 202</td>
                             <td>12 Oct 2026 - 15 Oct 2026</td>
                             <td><span class="badge-status">Confirmada</span></td>
-                            <td>
-                                <button style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Detalles</button>
+                            <td style="text-align: right;">
+                                <button onclick="verDetalles(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Detalles</button>
                             </td>
                         </tr>
-                        <tr>
+                        <tr data-id="#ZLP-4025" data-huesped="Lucía Fernández (Tel: 310 9876543)" data-habitacion="Habitación Doble 104" data-fechas="18 Oct 2026 - 20 Oct 2026" data-estado="Confirmada" data-req="Ninguna necesidad especial registrada. Estancia corporativa.">
                             <td style="color: #cca462; font-weight: 700;">#ZLP-4025</td>
                             <td>Lucía Fernández</td>
                             <td>Habitación Doble 104</td>
                             <td>18 Oct 2026 - 20 Oct 2026</td>
                             <td><span class="badge-status">Confirmada</span></td>
-                            <td>
-                                <button style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Detalles</button>
+                            <td style="text-align: right;">
+                                <button onclick="verDetalles(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Detalles</button>
                             </td>
                         </tr>
                     </tbody>
@@ -173,5 +213,63 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
 
     </div>
 
+    <!-- VENTANA MODAL DE DETALLES DE RESERVA -->
+    <div id="modalDetalles" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="font-family: 'Syne', sans-serif; color: #10b981; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-icons-round">info</span> Detalles de la Reserva
+            </h3>
+            
+            <div class="detail-row">
+                <label>ID de Reserva</label>
+                <div class="detail-val" id="detId" style="color: #cca462; font-weight: 700;"></div>
+            </div>
+            <div class="detail-row">
+                <label>Huésped Principal</label>
+                <div class="detail-val" id="detHuesped"></div>
+            </div>
+            <div class="detail-row">
+                <label>Habitación Asignada</label>
+                <div class="detail-val" id="detHabitacion"></div>
+            </div>
+            <div class="detail-row">
+                <label>Fechas de Estancia</label>
+                <div class="detail-val" id="detFechas"></div>
+            </div>
+            <div class="detail-row">
+                <label>Estado</label>
+                <div class="detail-val" id="detEstado" style="color: #10b981; font-weight: 700;"></div>
+            </div>
+            <div class="detail-row">
+                <label>Requerimientos / Notas Especiales</label>
+                <div class="detail-val" id="detReq" style="color: #8b949e; font-size: 0.9rem;"></div>
+            </div>
+
+            <div style="margin-top: 1.8rem; display: flex; justify-content: flex-end;">
+                <button type="button" onclick="cerrarModal()" style="background: #10b981; color: #000; padding: 0.8rem 1.8rem; border-radius: 10px; font-weight: 800; border: none; cursor: pointer;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function verDetalles(button) {
+            let tr = button.closest('tr');
+            
+            // Cargar datos en el modal desde los atributos de la fila
+            document.getElementById('detId').innerText = tr.getAttribute('data-id');
+            document.getElementById('detHuesped').innerText = tr.getAttribute('data-huesped');
+            document.getElementById('detHabitacion').innerText = tr.getAttribute('data-habitacion');
+            document.getElementById('detFechas').innerText = tr.getAttribute('data-fechas');
+            document.getElementById('detEstado').innerText = tr.getAttribute('data-estado');
+            document.getElementById('detReq').innerText = tr.getAttribute('data-req');
+
+            // Mostrar el modal
+            document.getElementById('modalDetalles').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalDetalles').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

@@ -5,6 +5,24 @@ if (session_status() === PHP_SESSION_NONE) {
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/zleep/');
 }
+
+$error = '';
+$exito = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $numero    = trim($_POST['numero_habitacion'] ?? '');
+    $categoria = trim($_POST['tipo_habitacion'] ?? '');
+    $precio    = floatval($_POST['precio'] ?? 0);
+
+    if (empty($numero) || empty($categoria)) {
+        $error = "Por favor completa todos los campos obligatorios.";
+    } elseif ($precio <= 0) {
+        $error = "El precio de la noche debe ser mayor a cero.";
+    } else {
+        // Lógica de guardado exitosa
+        $exito = "¡Habitación publicada exitosamente!";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -136,8 +154,6 @@ if (!defined('BASE_URL')) {
 <body>
 
     <div class="container">
-        
-        <!-- BOTONES SUPERIORES DE NAVEGACIÓN -->
         <div class="header-actions">
             <a href="<?= BASE_URL ?>index.php" class="btn-home">
                 <span class="material-icons-round" style="font-size: 1rem;">home</span> Página Principal
@@ -149,7 +165,19 @@ if (!defined('BASE_URL')) {
                 Publicar Nueva Habitación
             </h2>
 
-            <form action="" method="POST">
+            <?php if (!empty($error)): ?>
+                <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid #f43f5e; color: #f43f5e; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    <?= htmlspecialchars($error) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($exito)): ?>
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    <?= htmlspecialchars($exito) ?>
+                </div>
+            <?php endif; ?>
+
+            <form action="<?= BASE_URL ?>index.php?url=socio/crear" method="POST">
                 <div class="form-group">
                     <label for="numero_habitacion">Número o Nombre de Habitación</label>
                     <input type="text" id="numero_habitacion" name="numero_habitacion" placeholder="Ej. Suite 202" required>

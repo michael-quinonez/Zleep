@@ -7,13 +7,21 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', '/zleep/');
 }
 
-// Las variables $nombreUsuario, $rolUsuario, $rolId, $esSocio y $habitaciones 
-// ahora son inyectadas directamente desde el DashboardController.
-$nombreUsuario = $nombreUsuario ?? $_SESSION['usuario_nombre'] ?? 'Usuario';
-$rolUsuario    = $rolUsuario ?? mb_strtolower($_SESSION['usuario_rol'] ?? 'cliente', 'UTF-8');
-$rolId         = $rolId ?? $_SESSION['usuario_rol_id'] ?? 3;
-$esSocio       = isset($esSocio) ? $esSocio : (in_array($rolId, [1, 4]) || in_array($rolUsuario, ['socio', 'propietario', 'dueno', 'administrador']));
-$habitaciones  = $habitaciones ?? [];
+$nombreUsuario = isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre'] : 'Usuario';
+$rolUsuario = isset($_SESSION['usuario_rol']) ? strtolower($_SESSION['usuario_rol']) : 'cliente';
+$rolId = isset($_SESSION['usuario_rol_id']) ? $_SESSION['usuario_rol_id'] : 1;
+
+// Rol de Socio/Propietario (Rol ID 4 = Hotelero, Rol ID 1 = Cliente)
+$esSocio = false;
+if (isset($esSocioVariable)) {
+    $esSocio = $esSocioVariable;
+} else {
+    if ($rolId == 4 || $rolUsuario === 'socio' || $rolUsuario === 'propietario' || $rolUsuario === 'administrador' || $rolUsuario === 'hotel_admin') {
+        $esSocio = true;
+    }
+}
+
+$habitaciones = isset($habitaciones) ? $habitaciones : [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -117,6 +125,18 @@ $habitaciones  = $habitaciones ?? [];
                     </a>
                 <?php endif; ?>
 
+                <!-- SOBRE NOSOTROS -->
+                <a href="javascript:void(0)" onclick="abrirModalNosotros()" class="nav-item" style="color: #8b949e; display: flex; align-items: center; gap: 0.8rem; text-decoration: none;">
+                    <span class="material-icons-round">info</span>
+                    <span class="nav-text">Sobre Nosotros</span>
+                </a>
+
+                <!-- TRATAMIENTO DE DATOS -->
+                <a href="javascript:void(0)" onclick="abrirModalDatos()" class="nav-item" style="color: #8b949e; display: flex; align-items: center; gap: 0.8rem; text-decoration: none;">
+                    <span class="material-icons-round">shield</span>
+                    <span class="nav-text">Tratamiento de Datos</span>
+                </a>
+
                 <a href="<?= BASE_URL ?>index.php?url=auth/login" class="nav-item" style="margin-top: 2rem; color: #f43f5e; display: flex; align-items: center; gap: 0.8rem; text-decoration: none;">
                     <span class="material-icons-round">logout</span>
                     <span class="nav-text">Cerrar Sesión</span>
@@ -133,7 +153,7 @@ $habitaciones  = $habitaciones ?? [];
                 </div>
 
                 <?php if ($esSocio): ?>
-                    <a href="<?= BASE_URL ?>index.php?url=socio/habitaciones/crear" style="background: #10b981; color: #000; padding: 0.65rem 1.2rem; border-radius: 99px; font-weight: 700; text-decoration: none; font-size: 0.88rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <a href="<?= BASE_URL ?>index.php?url=socio/crear" style="background: #10b981; color: #000; padding: 0.65rem 1.2rem; border-radius: 99px; font-weight: 700; text-decoration: none; font-size: 0.88rem; display: flex; align-items: center; gap: 0.4rem;">
                         <span class="material-icons-round">add</span> Publicar Habitación
                     </a>
                 <?php else: ?>
@@ -141,7 +161,7 @@ $habitaciones  = $habitaciones ?? [];
                         <input type="hidden" name="url" value="reservas/buscar">
                         <div style="position: relative; display: flex; align-items: center;">
                             <span class="material-icons-round" style="position: absolute; left: 1rem; color: #8b949e; font-size: 1.2rem; pointer-events: none;">search</span>
-                            <input type="text" name="query" placeholder="Buscar hotel para reservar..." required style="width: 100%; background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 99px; padding: 0.65rem 1rem 0.65rem 2.8rem; color: #fff; font-size: 0.88rem; outline: none;">
+                            <input type="text" name="query" placeholder="Buscar destino (ej. Bogotá, Medellín)..." required style="width: 100%; background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 99px; padding: 0.65rem 1rem 0.65rem 2.8rem; color: #fff; font-size: 0.88rem; outline: none;">
                         </div>
                     </form>
                 <?php endif; ?>
@@ -156,6 +176,22 @@ $habitaciones  = $habitaciones ?? [];
                 </p>
             </div>
 
+            <!-- SI ES CLIENTE: MÓDULO DE RESERVAS PRIMERO -->
+            <?php if (!$esSocio): ?>
+                <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 2rem; margin-bottom: 2.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3 style="color: #cca462; font-family: 'Syne', sans-serif; margin: 0 0 0.3rem 0; font-size: 1.3rem;">Tus Reservas Activas</h3>
+                            <p style="color: #8b949e; font-size: 0.85rem; margin: 0;">Monitorea tus estadías en curso y hospedajes agendados.</p>
+                        </div>
+                        <a href="<?= BASE_URL ?>index.php?url=reservas" style="background: #cca462; color: #000; padding: 0.65rem 1.4rem; border-radius: 99px; font-weight: 700; text-decoration: none; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                            <span class="material-icons-round">bed</span> Ver Todas Mis Reservas
+                        </a>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- TARJETAS DE EMERGENCIAS (AHORA EN SEGUNDO LUGAR PARA CLIENTES) -->
             <div class="grid-emergencias">
                 <div class="tarjeta-emergencia medica">
                     <span class="material-icons-round" style="font-size: 2.2rem; color: #10b981; margin-bottom: 0.8rem;">medical_services</span>
@@ -223,6 +259,109 @@ $habitaciones  = $habitaciones ?? [];
         </main>
     </div>
 
+    <!-- VENTANA MODAL: SOBRE NOSOTROS -->
+    <div id="modalSobreNosotros" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 999999;">
+        <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; width: 90%; max-width: 540px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02);">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span class="material-icons-round" style="color: <?= $esSocio ? '#10b981' : '#cca462' ?>; font-size: 1.4rem;"><?= $esSocio ? 'storefront' : 'travel_explore' ?></span>
+                    <h3 style="margin: 0; font-size: 1.1rem; color: #fff; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: -0.3px;">Sobre Zleep <?= $esSocio ? 'para Propietarios' : 'para Huéspedes' ?></h3>
+                </div>
+                <button type="button" onclick="cerrarModalNosotros()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #8b949e; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.color='#fff'; this.style.background='rgba(255,255,255,0.15)';" onmouseout="this.style.color='#8b949e'; this.style.background='rgba(255,255,255,0.05)';">
+                    <span class="material-icons-round" style="font-size: 1.1rem;">close</span>
+                </button>
+            </div>
+
+            <div style="padding: 1.5rem; overflow-y: auto; flex: 1;">
+                <?php if ($esSocio): ?>
+                    <p style="margin: 0 0 1rem 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
+                        <strong style="color: #10b981;">Zleep para Socios</strong> es la herramienta de gestión diseñada para darte el control total de tu establecimiento hotelero. Podrás publicar y editar tus habitaciones, consultar el estado de ocupación y supervisar todas las reservas recibidas en tiempo real.
+                    </p>
+                    <p style="margin: 0 0 1.5rem 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
+                        Además, la plataforma te integra directamente a un sistema de geolocalización y botones de alerta inmediata para brindar la mayor seguridad y respaldo a tu propiedad y a tus huéspedes.
+                    </p>
+                <?php else: ?>
+                    <p style="margin: 0 0 1rem 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
+                        <strong style="color: #cca462;">Zleep</strong> es tu plataforma ideal para buscar y reservar hospedajes con total confianza. Encuentra la habitación perfecta para tus viajes, verifica la disponibilidad al instante y gestiona todas tus reservas fácilmente.
+                    </p>
+                    <p style="margin: 0 0 1.5rem 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
+                        Pensando en tu bienestar, Zleep te ofrece un sistema de apoyo en tiempo real con alertas de emergencia (médica, incendio o seguridad) e integración con mapa de ubicación.
+                    </p>
+                <?php endif; ?>
+
+                <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 1.5rem 0;">
+
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.2rem;">
+                    <span class="material-icons-round" style="color: #cca462; font-size: 1.2rem;">code</span>
+                    <h4 style="margin: 0; color: #fff; font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;">Equipo Desarrollador</h4>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 1rem; display: flex; align-items: center; gap: 0.8rem;">
+                        <img src="<?= BASE_URL ?>img/stephanie.jpg" alt="Stephanie Melo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(204, 164, 98, 0.4);">
+                        <div style="display: none; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #cca462, #8b6e38); color: #000; font-weight: 800; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; border: 2px solid rgba(204, 164, 98, 0.4);">
+                            SM
+                        </div>
+                        <div style="display: flex; flex-direction: column; overflow: hidden;">
+                            <span style="color: #fff; font-weight: 700; font-size: 0.88rem; line-height: 1.2; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                Stephanie Melo
+                            </span>
+                            <span style="color: #cca462; font-size: 0.72rem; font-weight: 600; margin-top: 2px;">
+                                Programadora
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 1rem; display: flex; align-items: center; gap: 0.8rem;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); color: #8b949e; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid rgba(255, 255, 255, 0.12);">
+                            <span class="material-icons-round" style="font-size: 1.7rem;">person</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; overflow: hidden;">
+                            <span style="color: #fff; font-weight: 700; font-size: 0.88rem; line-height: 1.2; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                Michael Quiñonez
+                            </span>
+                            <span style="color: #10b981; font-size: 0.72rem; font-weight: 600; margin-top: 2px;">
+                                Programador
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 1rem 1.5rem 1.25rem 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: flex-end; background: rgba(0, 0, 0, 0.2);">
+                <button type="button" onclick="cerrarModalNosotros()" style="background: <?= $esSocio ? '#10b981' : '#cca462' ?>; color: #000; border: none; padding: 0.65rem 1.6rem; border-radius: 99px; font-size: 0.88rem; font-weight: 800; cursor: pointer;">
+                    <span class="material-icons-round" style="font-size: 1.1rem;">check_circle</span> Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VENTANA MODAL: TRATAMIENTO DE DATOS -->
+    <div id="modalTratamientoDatos" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 999999;">
+        <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); overflow: hidden;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02);">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span class="material-icons-round" style="color: #cca462; font-size: 1.4rem;">verified_user</span>
+                    <h3 style="margin: 0; font-size: 1.1rem; color: #fff; font-family: 'Syne', sans-serif; font-weight: 700;">Tratamiento de datos</h3>
+                </div>
+                <button type="button" onclick="cerrarModalDatos()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #8b949e; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <span class="material-icons-round" style="font-size: 1.1rem;">close</span>
+                </button>
+            </div>
+            <div style="padding: 1.75rem 1.5rem;">
+                <p style="margin: 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
+                    El presente proyecto tiene fines exclusivamente académicos. Los datos utilizados durante el desarrollo, las pruebas y la demostración del sistema son ficticios. El sistema no recolecta, almacena ni procesa datos personales reales.
+                </p>
+            </div>
+            <div style="padding: 1rem 1.5rem 1.25rem 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: flex-end; background: rgba(0, 0, 0, 0.2);">
+                <button type="button" onclick="cerrarModalDatos()" style="background: #cca462; color: #000; border: none; padding: 0.65rem 1.6rem; border-radius: 99px; font-size: 0.88rem; font-weight: 800; cursor: pointer;">
+                    <span class="material-icons-round" style="font-size: 1.1rem;">check_circle</span> Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('mainSidebar');
@@ -234,6 +373,7 @@ $habitaciones  = $habitaciones ?? [];
                 }
             }
         }
+
         function abrirGeolocalizacion() {
             const texto = document.getElementById('geoTexto');
             texto.textContent = "Obteniendo coordenadas...";
@@ -252,6 +392,26 @@ $habitaciones  = $habitaciones ?? [];
                 texto.textContent = "Geolocalización no soportada en este navegador.";
                 window.open('https://www.google.com/maps', '_blank');
             }
+        }
+
+        function abrirModalNosotros() {
+            var modal = document.getElementById('modalSobreNosotros');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function cerrarModalNosotros() {
+            var modal = document.getElementById('modalSobreNosotros');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function abrirModalDatos() {
+            var modal = document.getElementById('modalTratamientoDatos');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function cerrarModalDatos() {
+            var modal = document.getElementById('modalTratamientoDatos');
+            if (modal) modal.style.display = 'none';
         }
     </script>
 </body>

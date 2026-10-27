@@ -44,13 +44,15 @@ $exito = isset($_GET['success']) && $_GET['success'] == '1';
                 </script>
             <?php endif; ?>
 
+            <!-- Alerta superior SOLO para errores críticos como correo duplicado -->
             <?php if (!empty($error)): ?>
-                <div class="alert-error" style="background: rgba(244, 63, 94, 0.1); border: 1px solid #f43f5e; color: #f43f5e; padding: 0.8rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.85rem; text-align: center;">
-                    <?= htmlspecialchars($error) ?>
+                <div class="alert-error" style="background: rgba(244, 63, 94, 0.1); border: 1px solid #f43f5e; color: #f43f5e; padding: 0.8rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.85rem; text-align: left;">
+                    <strong>Atención:</strong>
+                    <p style="margin-top: 4px; margin-bottom: 0;"><?= htmlspecialchars($error) ?></p>
                 </div>
             <?php endif; ?>
 
-            <form action="<?= BASE_URL ?>index.php?url=auth/register" method="POST" autocomplete="off">
+            <form id="register-form" action="<?= BASE_URL ?>index.php?url=auth/register" method="POST" autocomplete="off">
                 <div class="form-group">
                     <label for="nombre">Nombre Completo</label>
                     <input type="text" id="nombre" name="nombre" placeholder="Tu nombre y apellido" required value="<?= htmlspecialchars($_POST['nombre'] ?? '') ?>">
@@ -64,9 +66,31 @@ $exito = isset($_GET['success']) && $_GET['success'] == '1';
                 <div class="form-group">
                     <label for="password">Contraseña</label>
                     <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="new-password">
+                    
+                    <!-- Lista interactiva de requisitos en tiempo real -->
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.6rem 0.8rem; border-radius: 8px; margin-top: 6px;">
+                        <span style="font-size: 0.75rem; color: #a0aec0; font-weight: bold; display: block; margin-bottom: 4px;">Requisitos de la contraseña:</span>
+                        <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 0.75rem; line-height: 1.6;">
+                            <li id="req-length" style="color: #f43f5e; transition: color 0.3s;">
+                                <span class="icon" style="display: inline-block; width: 16px; font-weight: bold;">✖</span> Mínimo 8 caracteres
+                            </li>
+                            <li id="req-upper" style="color: #f43f5e; transition: color 0.3s;">
+                                <span class="icon" style="display: inline-block; width: 16px; font-weight: bold;">✖</span> Al menos una letra mayúscula
+                            </li>
+                            <li id="req-lower" style="color: #f43f5e; transition: color 0.3s;">
+                                <span class="icon" style="display: inline-block; width: 16px; font-weight: bold;">✖</span> Al menos una letra minúscula
+                            </li>
+                            <li id="req-number" style="color: #f43f5e; transition: color 0.3s;">
+                                <span class="icon" style="display: inline-block; width: 16px; font-weight: bold;">✖</span> Al menos un número
+                            </li>
+                            <li id="req-special" style="color: #f43f5e; transition: color 0.3s;">
+                                <span class="icon" style="display: inline-block; width: 16px; font-weight: bold;">✖</span> Al menos un símbolo especial (! @ # $ % & * _)
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-submit" <?= $exito ? 'disabled' : '' ?>>Registrar Cuenta</button>
+                <button type="submit" id="btn-submit" class="btn-submit" <?= $exito ? 'disabled' : '' ?>>Registrar Cuenta</button>
             </form>
 
             <div class="auth-footer" style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #8b949e;">
@@ -75,6 +99,54 @@ $exito = isset($_GET['success']) && $_GET['success'] == '1';
             </div>
         </div>
     </div>
+
+    <!-- Script de validación en tiempo real -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const form = document.getElementById('register-form');
+
+            const reqs = {
+                length: { el: document.getElementById('req-length'), regex: /.{8,}/ },
+                upper: { el: document.getElementById('req-upper'), regex: /[A-Z]/ },
+                lower: { el: document.getElementById('req-lower'), regex: /[a-z]/ },
+                number: { el: document.getElementById('req-number'), regex: /\d/ },
+                special: { el: document.getElementById('req-special'), regex: /[!@#$%^&*(),.?":{}|<>\-_]/ }
+            };
+
+            function validarContraseñaEnTiempoReal() {
+                const val = passwordInput.value;
+                let validCount = 0;
+
+                for (const key in reqs) {
+                    const isPassed = reqs[key].regex.test(val);
+                    const icon = reqs[key].el.querySelector('.icon');
+
+                    if (isPassed) {
+                        reqs[key].el.style.color = '#4ade80'; // Verde de éxito
+                        icon.textContent = '✔';
+                        validCount++;
+                    } else {
+                        reqs[key].el.style.color = '#f43f5e'; // Rosa de error
+                        icon.textContent = '✖';
+                    }
+                }
+                return validCount === 5;
+            }
+
+            // Escuchar cada vez que el usuario escriba en el input
+            passwordInput.addEventListener('input', validarContraseñaEnTiempoReal);
+
+            // Bloquear el envío si intenta registrarse con reglas incompletas
+            form.addEventListener('submit', function(e) {
+                if (!validarContraseñaEnTiempoReal()) {
+                    e.preventDefault();
+                    alert("La contraseña no cumple con todos los requisitos de seguridad obligatorios.");
+                    passwordInput.focus();
+                }
+            });
+        });
+    </script>
 
 </body>
 </html>
