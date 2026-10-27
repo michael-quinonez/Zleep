@@ -9,6 +9,8 @@ $controllerName = ucfirst($urlParams[0] ?? 'Dashboard') . 'Controller';
 $actionName = $urlParams[1] ?? 'index';
 
 // Transforma 'mi-hotel' o 'mi_hotel' en 'miHotel' de forma automática
+//sdfsdfsd
+//sdfsdfsd
 $actionName = lcfirst(str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $actionName))));
 
 $controllerFile = __DIR__ . '/controllers/' . $controllerName . '.php';
