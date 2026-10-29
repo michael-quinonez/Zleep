@@ -11,7 +11,6 @@ $nombreUsuario = isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre'
 $rolUsuario = isset($_SESSION['usuario_rol']) ? strtolower($_SESSION['usuario_rol']) : 'cliente';
 $rolId = isset($_SESSION['usuario_rol_id']) ? $_SESSION['usuario_rol_id'] : 1;
 
-// Rol de Socio/Propietario (Rol ID 4 = Hotelero, Rol ID 1 = Cliente)
 $esSocio = false;
 if (isset($esSocioVariable)) {
     $esSocio = $esSocioVariable;
@@ -22,6 +21,7 @@ if (isset($esSocioVariable)) {
 }
 
 $habitaciones = isset($habitaciones) ? $habitaciones : [];
+$reservas = isset($reservas) ? $reservas : [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -125,13 +125,11 @@ $habitaciones = isset($habitaciones) ? $habitaciones : [];
                     </a>
                 <?php endif; ?>
 
-                <!-- SOBRE NOSOTROS -->
                 <a href="javascript:void(0)" onclick="abrirModalNosotros()" class="nav-item" style="color: #8b949e; display: flex; align-items: center; gap: 0.8rem; text-decoration: none;">
                     <span class="material-icons-round">info</span>
                     <span class="nav-text">Sobre Nosotros</span>
                 </a>
 
-                <!-- TRATAMIENTO DE DATOS -->
                 <a href="javascript:void(0)" onclick="abrirModalDatos()" class="nav-item" style="color: #8b949e; display: flex; align-items: center; gap: 0.8rem; text-decoration: none;">
                     <span class="material-icons-round">shield</span>
                     <span class="nav-text">Tratamiento de Datos</span>
@@ -175,8 +173,7 @@ $habitaciones = isset($habitaciones) ? $habitaciones : [];
                     <?= $esSocio ? 'Administración de tu propiedad y reservas recibidas.' : 'Gestión y monitoreo en tiempo real del establecimiento.' ?>
                 </p>
             </div>
-
-            <!-- SI ES CLIENTE: MÓDULO DE RESERVAS PRIMERO -->
+                    
             <?php if (!$esSocio): ?>
                 <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 2rem; margin-bottom: 2.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
@@ -191,7 +188,7 @@ $habitaciones = isset($habitaciones) ? $habitaciones : [];
                 </div>
             <?php endif; ?>
 
-            <!-- TARJETAS DE EMERGENCIAS (AHORA EN SEGUNDO LUGAR PARA CLIENTES) -->
+            <!-- TARJETAS DE EMERGENCIAS -->
             <div class="grid-emergencias">
                 <div class="tarjeta-emergencia medica">
                     <span class="material-icons-round" style="font-size: 2.2rem; color: #10b981; margin-bottom: 0.8rem;">medical_services</span>
@@ -268,7 +265,7 @@ $habitaciones = isset($habitaciones) ? $habitaciones : [];
                     <span class="material-icons-round" style="color: <?= $esSocio ? '#10b981' : '#cca462' ?>; font-size: 1.4rem;"><?= $esSocio ? 'storefront' : 'travel_explore' ?></span>
                     <h3 style="margin: 0; font-size: 1.1rem; color: #fff; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: -0.3px;">Sobre Zleep <?= $esSocio ? 'para Propietarios' : 'para Huéspedes' ?></h3>
                 </div>
-                <button type="button" onclick="cerrarModalNosotros()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #8b949e; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.color='#fff'; this.style.background='rgba(255,255,255,0.15)';" onmouseout="this.style.color='#8b949e'; this.style.background='rgba(255,255,255,0.05)';">
+                <button type="button" onclick="cerrarModalNosotros()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #8b949e; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
                     <span class="material-icons-round" style="font-size: 1.1rem;">close</span>
                 </button>
             </div>
@@ -388,30 +385,23 @@ $habitaciones = isset($habitaciones) ? $habitaciones : [];
                         window.open('https://www.google.com/maps', '_blank');
                     }
                 );
-            } else {
-                texto.textContent = "Geolocalización no soportada en este navegador.";
-                window.open('https://www.google.com/maps', '_blank');
             }
         }
 
         function abrirModalNosotros() {
-            var modal = document.getElementById('modalSobreNosotros');
-            if (modal) modal.style.display = 'flex';
+            document.getElementById('modalSobreNosotros').style.display = 'flex';
         }
 
         function cerrarModalNosotros() {
-            var modal = document.getElementById('modalSobreNosotros');
-            if (modal) modal.style.display = 'none';
+            document.getElementById('modalSobreNosotros').style.display = 'none';
         }
 
         function abrirModalDatos() {
-            var modal = document.getElementById('modalTratamientoDatos');
-            if (modal) modal.style.display = 'flex';
+            document.getElementById('modalTratamientoDatos').style.display = 'flex';
         }
 
         function cerrarModalDatos() {
-            var modal = document.getElementById('modalTratamientoDatos');
-            if (modal) modal.style.display = 'none';
+            document.getElementById('modalTratamientoDatos').style.display = 'none';
         }
     </script>
 </body>

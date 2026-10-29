@@ -204,18 +204,31 @@ if (!defined('BASE_URL')) {
                                 <th style="padding: 1rem;">Tipo</th>
                                 <th style="padding: 1rem;">Ubicación</th>
                                 <th style="padding: 1rem;">Estado</th>
+                                <th style="padding: 1rem; text-align: center;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($emergencias as $emergencia): ?>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                                     <td style="padding: 1rem;"><?= htmlspecialchars($emergencia['id']) ?></td>
-                                    <td style="padding: 1rem;"><?= htmlspecialchars($emergencia['tipo']) ?></td>
+                                    <td style="padding: 1rem; font-weight: 700; color: #ff4d6d;">
+                                        <?= htmlspecialchars(!empty($emergencia['tipo_emergencia']) ? $emergencia['tipo_emergencia'] : ($emergencia['tipo'] ?? 'Asistencia Médica')) ?>
+                                    </td>
                                     <td style="padding: 1rem;"><?= htmlspecialchars($emergencia['ubicacion']) ?></td>
                                     <td style="padding: 1rem;">
                                         <span style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; padding: 0.3rem 0.8rem; border-radius: 10px; font-size: 0.85rem; border: 1px solid rgba(244, 63, 94, 0.3);">
-                                            <?= htmlspecialchars($emergencia['estado']) ?>
+                                            Activo
                                         </span>
+                                    </td>
+                                    <td style="padding: 1rem; text-align: center;">
+                                        <a href="<?= BASE_URL ?>index.php?url=emergencias/eliminar&id=<?= $emergencia['id'] ?>" 
+                                           style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255, 75, 75, 0.15); color: #ff4b4b; border-radius: 10px; text-decoration: none; font-weight: bold; border: 1px solid rgba(255, 75, 75, 0.3); transition: all 0.2s;"
+                                           title="Eliminar emergencia"
+                                           onclick="return confirm('¿Estás seguro de eliminar este registro de emergencia?');"
+                                           onmouseover="this.style.background='rgba(255, 75, 75, 0.3)'"
+                                           onmouseout="this.style.background='rgba(255, 75, 75, 0.15)'">
+                                            ✕
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -247,7 +260,7 @@ if (!defined('BASE_URL')) {
             <form action="<?= BASE_URL ?>index.php?url=emergencias/crear" method="POST">
                 <div class="form-group">
                     <label>Tipo de Emergencia</label>
-                    <select name="tipo" class="form-control" required>
+                    <select name="tipo_emergencia" class="form-control" required>
                         <option value="">Selecciona el evento</option>
                         <option value="Asistencia Médica">Asistencia Médica</option>
                         <option value="Incendio / Evacuación">Incendio / Evacuación</option>
@@ -263,7 +276,7 @@ if (!defined('BASE_URL')) {
 
                 <div class="form-group">
                     <label>Detalles / Observaciones</label>
-                    <textarea name="descripcion" class="form-control" rows="3" placeholder="Describe brevemente lo sucedido..."></textarea>
+                    <textarea name="detalles" class="form-control" rows="3" placeholder="Describe brevemente lo sucedido..."></textarea>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">

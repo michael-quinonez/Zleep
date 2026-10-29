@@ -29,8 +29,9 @@ class AuthController {
 
                     // Determinar el rol_id desde la base de datos
                     $rolId = $usuario['rol_id'] ?? 1;
+                    $usuario_id = $usuario['id'] ?? $usuario['id_usuario'];
 
-                    $_SESSION['usuario_id']     = $usuario['id'] ?? $usuario['id_usuario'];
+                    $_SESSION['usuario_id']     = $usuario_id;
                     $_SESSION['usuario_nombre'] = $usuario['nombre'];
                     $_SESSION['usuario_email']  = $usuario['email'];
                     $_SESSION['usuario_rol_id'] = $rolId;
@@ -38,6 +39,22 @@ class AuthController {
                     // Asignación dinámica de rol y redirección al Dashboard principal
                     if ($rolId == 4) {
                         $_SESSION['usuario_rol'] = 'hotel_admin';
+                        
+                        // Buscar y guardar el id_hotel asociado a este administrador
+                        try {
+                            $pdo = $userModel->getConexion();
+                            $stmtHotel = $pdo->prepare("SELECT id_hotel, nombre FROM hoteles WHERE usuario_id = ?");
+                            $stmtHotel->execute([$usuario_id]);
+                            $hotelData = $stmtHotel->fetch(PDO::FETCH_ASSOC);
+
+                            if ($hotelData) {
+                                $_SESSION['id_hotel'] = $hotelData['id_hotel'];
+                                $_SESSION['hotel_nombre'] = $hotelData['nombre'];
+                            }
+                        } catch (Exception $e) {
+                            // Manejo silencioso o registro de error si fuera necesario
+                        }
+
                         header("Location: " . BASE_URL . "index.php?url=dashboard");
                         exit();
                     } else {
@@ -97,7 +114,7 @@ class AuthController {
         }
     }
 
-    // Método principal de registro de hotel con columnas exactas basadas en la base de datos
+    // Método principal de registro de hotel
     public function registerHotel() {
         $error = '';
         
@@ -151,9 +168,10 @@ class AuthController {
                             $stmtUser->execute([$nombre, $email, password_hash($password, PASSWORD_DEFAULT), $rol_id]);
                             $usuario_id = $pdo->lastInsertId();
 
-                            // 2. Inserción de los datos del hotel usando 'usuario_id' y 'nombre' tal como muestra la tabla
+                            // 2. Inserción de los datos del hotel
                             $stmtHotel = $pdo->prepare("INSERT INTO hoteles (usuario_id, nombre, nit, direccion, ciudad) VALUES (?, ?, ?, ?, ?)");
                             $stmtHotel->execute([$usuario_id, $nombre_hotel, $nit, $direccion, 'Bogotá']);
+                            $id_hotel = $pdo->lastInsertId();
 
                             $pdo->commit();
 
@@ -167,6 +185,7 @@ class AuthController {
                             $_SESSION['usuario_email']  = $email;
                             $_SESSION['usuario_rol_id'] = $rol_id;
                             $_SESSION['usuario_rol']    = 'hotel_admin';
+                            $_SESSION['id_hotel']       = $id_hotel;
                             $_SESSION['hotel_nombre']   = $nombre_hotel;
 
                             header("Location: " . BASE_URL . "index.php?url=dashboard");

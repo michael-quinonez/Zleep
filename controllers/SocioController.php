@@ -1,4 +1,6 @@
 <?php
+require_once dirname(__DIR__) . '/config/Database.php';
+
 class SocioController {
     
     public function dashboard() {
@@ -23,6 +25,32 @@ class SocioController {
     }
 
     public function habitaciones() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $habitaciones = [];
+
+        try {
+            $db = Database::getConnection();
+
+            // Consulta global para traer todas las habitaciones y reservas del sistema sin restricciones
+            $sql = "SELECT h.id_habitacion, h.numero, h.categoria, h.estado as estado_habitacion, 
+                           r.id_reserva, r.fecha_checkin, r.fecha_checkout, r.detalles AS requerimientos, r.estado_reserva,
+                           u.nombre AS nombre_huesp, u.telefono AS telefono_huesp,
+                           hot.nombre AS nombre_hotel
+                    FROM habitaciones h
+                    LEFT JOIN hoteles hot ON h.id_hotel = hot.id_hotel
+                    LEFT JOIN reservas r ON h.id_habitacion = r.id_habitacion
+                    LEFT JOIN usuarios u ON r.id_cliente = u.id_usuario";
+
+            $stmt = $db->query($sql);
+            $habitaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (Exception $e) {
+            $habitaciones = [];
+        }
+
         $archivoVista = dirname(__DIR__) . '/views/socio/gestionar_cuartos.php';
         if (file_exists($archivoVista)) {
             require_once $archivoVista;

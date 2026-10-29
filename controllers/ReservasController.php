@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../models/Reserva.php';
+require_once __DIR__ . '/../config/Database.php';
 
 class ReservasController {
 
@@ -16,23 +17,51 @@ class ReservasController {
 
     public function index() {
         $reservaModel = new Reserva();
-        $reservas = $reservaModel->obtenerTodas();
+        $usuario_id = $_SESSION['usuario_id'] ?? $_SESSION['user_id'] ?? 0;
+        
+        $id_hotel = $_SESSION['id_hotel'] ?? null;
+        $rolUsuario = isset($_SESSION['usuario_rol']) ? trim(mb_strtolower($_SESSION['usuario_rol'], 'UTF-8')) : '';
+        $rolId = isset($_SESSION['usuario_rol_id']) ? intval($_SESSION['usuario_rol_id']) : 0;
 
-        // Obtener hoteles y habitaciones directamente por PDO para evitar archivos de modelo faltantes
+        $esSocio = false;
+        if (in_array($rolId, [1, 4]) && !in_array($rolUsuario, ['cliente', 'user', 'usuario'])) {
+            $esSocio = true;
+        } elseif (in_array($rolUsuario, ['socio', 'propietario', 'dueno', 'dueño', 'administrador', 'admin', 'hotel_admin'])) {
+            $esSocio = true;
+        }
+
         $hoteles = [];
         $habitaciones = [];
-        
+        $reservas = [];
+
         try {
-            $conexion = new PDO('mysql:host=localhost;dbname=zleep_db;charset=utf8', 'root', '');
-            $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            
-            $stmtH = $conexion->query("SELECT * FROM hoteles");
+            $conexion = Database::getConnection();
+
+            if ($esSocio && !$id_hotel && $usuario_id) {
+                $stmtH = $conexion->prepare("SELECT id_hotel FROM hoteles WHERE usuario_id = ?");
+                $stmtH->execute([$usuario_id]);
+                $hotelData = $stmtH->fetch(PDO::FETCH_ASSOC);
+                if ($hotelData) {
+                    $id_hotel = $hotelData['id_hotel'];
+                    $_SESSION['id_hotel'] = $id_hotel;
+                }
+            }
+
+            if ($esSocio && $id_hotel) {
+                $reservas = $reservaModel->obtenerReservasPorHotel($id_hotel);
+            } else {
+                $reservas = $reservaModel->obtenerTodas();
+            }
+
+            // Obtenemos todos los hoteles para alimentar los selects de la vista
+            $stmtH = $conexion->query("SELECT * FROM hoteles ORDER BY nombre ASC");
             $hoteles = $stmtH->fetchAll(PDO::FETCH_ASSOC);
 
             $stmtHab = $conexion->query("SELECT * FROM habitaciones");
             $habitaciones = $stmtHab->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            // Manejo silencioso si ocurre algún detalle de conexión
+
+        } catch (Exception $e) {
+            $reservas = $reservaModel->obtenerTodas();
         }
 
         require_once __DIR__ . '/../views/reservas/index.php';

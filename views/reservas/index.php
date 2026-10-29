@@ -198,14 +198,13 @@ if (!defined('BASE_URL')) {
                                             <?= htmlspecialchars($reserva['estado_reserva']) ?>
                                         </span>
                                     </td>
-                                    <!-- Botón de cancelación con la X en la zona solicitada -->
                                     <td style="padding: 1rem; text-align: center;">
                                         <a href="<?= BASE_URL ?>index.php?url=reservas/cancelar&id=<?= $reserva['id_reserva'] ?>" 
                                            style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255, 75, 75, 0.15); color: #ff4b4b; border-radius: 10px; text-decoration: none; font-weight: bold; border: 1px solid rgba(255, 75, 75, 0.3); transition: all 0.2s;"
                                            title="Cancelar reserva"
                                            onmouseover="this.style.background='rgba(255, 75, 75, 0.3)'"
                                            onmouseout="this.style.background='rgba(255, 75, 75, 0.15)'">
-                                           ✕
+                                            ✕
                                         </a>
                                     </td>
                                 </tr>
@@ -255,7 +254,7 @@ if (!defined('BASE_URL')) {
                         <?php if (!empty($habitaciones)): ?>
                             <?php foreach ($habitaciones as $hab): ?>
                                 <option value="<?= $hab['id_habitacion'] ?>" data-hotel="<?= $hab['id_hotel'] ?>">
-                                    Habitación <?= htmlspecialchars($hab['numero']) ?> - <?= htmlspecialchars($hab['tipo']) ?>
+                                    Habitación <?= htmlspecialchars($hab['numero']) ?> - <?= htmlspecialchars($hab['tipo'] ?? $hab['categoria'] ?? '') ?>
                                 </option>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -317,4 +316,4 @@ if (!defined('BASE_URL')) {
         });
     </script>
 </body>
-</html>s
+</html>

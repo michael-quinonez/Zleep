@@ -221,26 +221,35 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td style="font-weight: 700; color: #cca462;" class="hab-nombre">Suite 202</td>
-                            <td class="hab-tipo">Suite Presidencial</td>
-                            <td><span class="badge-ocupada hab-estado">Ocupada</span></td>
-                            <td class="hab-huesped">Carlos Mendoza (Tel: 300 1234567)</td>
-                            <td class="hab-req" style="color: #8b949e; font-size: 0.9rem;">Cama extra, alérgico a las plumas, llegada tardía (10:00 PM).</td>
-                            <td style="text-align: right;">
-                                <button onclick="abrirModal(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Editar</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 700; color: #cca462;" class="hab-nombre">Habitación 104</td>
-                            <td class="hab-tipo">Doble Estándar</td>
-                            <td><span class="badge-disponible hab-estado">Disponible</span></td>
-                            <td class="hab-huesped">Sin reserva actual</td>
-                            <td class="hab-req" style="color: #8b949e; font-size: 0.9rem;">Ninguna</td>
-                            <td style="text-align: right;">
-                                <button onclick="abrirModal(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Editar</button>
-                            </td>
-                        </tr>
+                        <?php if (!empty($habitaciones)): ?>
+                            <?php foreach ($habitaciones as $hab): ?>
+                                <?php 
+                                    $tieneReserva = !empty($hab['id_reserva']);
+                                    $estadoTexto = $tieneReserva ? 'Ocupada' : 'Disponible';
+                                    $claseEstado = $tieneReserva ? 'badge-ocupada hab-estado' : 'badge-disponible hab-estado';
+                                ?>
+                                <tr>
+                                    <td style="font-weight: 700; color: #cca462;" class="hab-nombre">Habitación <?= htmlspecialchars($hab['numero']) ?></td>
+                                    <td class="hab-tipo"><?= htmlspecialchars($hab['categoria'] ?? 'Estándar') ?></td>
+                                    <td><span class="<?= $claseEstado ?>"><?= $estadoTexto ?></span></td>
+                                    <td class="hab-huesped">
+                                        <?php if ($tieneReserva): ?>
+                                            <?= htmlspecialchars($hab['nombre_huesp'] ?? 'Huésped') ?> (Tel: <?= htmlspecialchars($hab['telefono_huesp'] ?? 'No registrado') ?>)
+                                        <?php else: ?>
+                                            Sin reserva actual
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="hab-req" style="color: #8b949e; font-size: 0.9rem;"><?= htmlspecialchars($hab['requerimientos'] ?? 'Ninguna') ?></td>
+                                    <td style="text-align: right;">
+                                        <button onclick="abrirModal(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Editar</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #8b949e; padding: 2rem;">No hay habitaciones registradas en el sistema.</td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
