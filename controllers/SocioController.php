@@ -4,7 +4,60 @@ require_once dirname(__DIR__) . '/config/Database.php';
 class SocioController {
     
     public function dashboard() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $totalHabitaciones = 0;
+        $totalDisponibles = 0;
+        $totalOcupadas = 0;
+
+        try {
+            $db = Database::getConnection();
+            $id_hotel = $this->obtenerIdHotelActual($db);
+
+            // Contar habitaciones totales del hotel actual
+            $stmtTotal = $db->prepare("SELECT COUNT(*) FROM habitaciones WHERE id_hotel = ?");
+            $stmtTotal->execute([$id_hotel]);
+            $totalHabitaciones = $stmtTotal->fetchColumn();
+
+            // Contar habitaciones disponibles del hotel actual
+            $stmtDisp = $db->prepare("SELECT COUNT(*) FROM habitaciones WHERE id_hotel = ? AND estado = 'Disponible'");
+            $stmtDisp->execute([$id_hotel]);
+            $totalDisponibles = $stmtDisp->fetchColumn();
+
+            // Contar habitaciones ocupadas del hotel actual
+            $stmtOcup = $db->prepare("SELECT COUNT(*) FROM habitaciones WHERE id_hotel = ? AND estado = 'Ocupada'");
+            $stmtOcup->execute([$id_hotel]);
+            $totalOcupadas = $stmtOcup->fetchColumn();
+
+        } catch (Exception $e) {
+            // Excepción controlada
+        }
+
         require_once dirname(__DIR__) . '/views/socio/dashboard.php';
+    }
+
+    private function obtenerIdHotelActual($db) {
+        if (isset($_SESSION['id_hotel']) && !empty($_SESSION['id_hotel'])) {
+            return $_SESSION['id_hotel'];
+        }
+
+        $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? null;
+        if ($id_usuario) {
+            try {
+                $stmt = $db->prepare("SELECT id_hotel FROM hoteles WHERE id_usuario = ? LIMIT 1");
+                $stmt->execute([$id_usuario]);
+                $hotel = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($hotel && !empty($hotel['id_hotel'])) {
+                    $_SESSION['id_hotel'] = $hotel['id_hotel'];
+                    return $hotel['id_hotel'];
+                }
+            } catch (Exception $e) {}
+        }
+
+        // Fallback por defecto si no se encuentra sesión activa
+        return 2;
     }
 
     public function crear() {
@@ -12,15 +65,69 @@ class SocioController {
     }
 
     public function crearHabitacion() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['id_habitacion'])) {
+            $numero = $_POST['numero'] ?? $_POST['nombre'] ?? '';
+            $tipo   = $_POST['tipo'] ?? $_POST['categoria'] ?? 'Estándar';
+            $precio = $_POST['precio_noche'] ?? $_POST['precio'] ?? 0;
+            $estado = $_POST['estado'] ?? 'Disponible';
+            
+            try {
+                $db = Database::getConnection();
+                $id_hotel = $this->obtenerIdHotelActual($db);
+            } catch (Exception $e) {
+                $id_hotel = 2;
+            }
+
+            if (!empty($numero)) {
+                $pathModel = dirname(__DIR__) . '/models/Habitacion.php';
+                if (!file_exists($pathModel)) {
+                    $pathModel = dirname(__DIR__) . '/models/habitacion.php';
+                }
+                require_once $pathModel;
+
+                $habitacionModel = new Habitacion();
+                $habitacionModel->crear($id_hotel, $numero, $tipo, $precio, $estado);
+                
+                header('Location: ' . BASE_URL . 'index.php?url=socio/habitaciones');
+                exit;
+            }
+        }
+
         $archivoVista = dirname(__DIR__) . '/views/socio/crear_habitacion.php';
         if (file_exists($archivoVista)) {
             require_once $archivoVista;
         } else {
-            echo "<div style='background:#05070a; color:#fff; font-family:sans-serif; padding:3rem; text-align:center;'>
-                    <h2 style='color:#10b981; font-family:Syne,sans-serif;'>Crear Habitación</h2>
-                    <p style='color:#8b949e; margin-top:1rem;'>Crea el archivo crear_habitacion.php en la carpeta views/socio/</p><br>
-                    <a href='" . BASE_URL . "index.php?url=socio/dashboard' style='color:#cca462; font-weight:bold; text-decoration:none;'>← Volver al Dashboard</a>
-                  </div>";
+            echo "No se encontró la vista crear_habitacion.php";
+        }
+    }
+
+    public function editarHabitacion() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_habitacion = $_POST['id_habitacion'] ?? null;
+            $numero = $_POST['numero'] ?? '';
+            $tipo   = $_POST['tipo'] ?? '';
+            $estado = $_POST['estado'] ?? 'Disponible';
+
+            if ($id_habitacion) {
+                try {
+                    $db = Database::getConnection();
+                    $stmt = $db->prepare("UPDATE habitaciones SET numero = ?, tipo = ?, estado = ? WHERE id_habitacion = ?");
+                    $stmt->execute([$numero, $tipo, $estado, $id_habitacion]);
+                } catch (Exception $e) {
+                    // Excepción controlada
+                }
+            }
+
+            header('Location: ' . BASE_URL . 'index.php?url=socio/habitaciones');
+            exit;
         }
     }
 
@@ -33,18 +140,10 @@ class SocioController {
 
         try {
             $db = Database::getConnection();
+            $id_hotel = $this->obtenerIdHotelActual($db);
 
-            // Consulta global para traer todas las habitaciones y reservas del sistema sin restricciones
-            $sql = "SELECT h.id_habitacion, h.numero, h.categoria, h.estado as estado_habitacion, 
-                           r.id_reserva, r.fecha_checkin, r.fecha_checkout, r.detalles AS requerimientos, r.estado_reserva,
-                           u.nombre AS nombre_huesp, u.telefono AS telefono_huesp,
-                           hot.nombre AS nombre_hotel
-                    FROM habitaciones h
-                    LEFT JOIN hoteles hot ON h.id_hotel = hot.id_hotel
-                    LEFT JOIN reservas r ON h.id_habitacion = r.id_habitacion
-                    LEFT JOIN usuarios u ON r.id_cliente = u.id_usuario";
-
-            $stmt = $db->query($sql);
+            $stmt = $db->prepare("SELECT id_habitacion, id_hotel, numero, tipo, precio_noche, COALESCE(estado, 'Disponible') AS estado_habitacion FROM habitaciones WHERE id_hotel = ? ORDER BY id_habitacion ASC");
+            $stmt->execute([$id_hotel]);
             $habitaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (Exception $e) {
@@ -55,24 +154,30 @@ class SocioController {
         if (file_exists($archivoVista)) {
             require_once $archivoVista;
         } else {
-            echo "<div style='background:#05070a; color:#fff; font-family:sans-serif; padding:3rem; text-align:center;'>
-                    <h2 style='color:#10b981; font-family:Syne,sans-serif;'>Gestión de Cuartos</h2>
-                    <p style='color:#8b949e; margin-top:1rem;'>Crea el archivo gestionar_cuartos.php en la carpeta views/socio/</p><br>
-                    <a href='" . BASE_URL . "index.php?url=socio/dashboard' style='color:#cca462; font-weight:bold; text-decoration:none;'>← Volver al Dashboard</a>
-                  </div>";
+            echo "No se encontró la vista gestionar_cuartos.php";
         }
     }
 
     public function reservas() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $reservas = [];
+
+        try {
+            $db = Database::getConnection();
+            $stmt = $db->query("SELECT * FROM reservas ORDER BY id_reserva DESC");
+            $reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $reservas = [];
+        }
+
         $archivoVista = dirname(__DIR__) . '/views/socio/reservas.php';
         if (file_exists($archivoVista)) {
             require_once $archivoVista;
         } else {
-            echo "<div style='background:#05070a; color:#fff; font-family:sans-serif; padding:3rem; text-align:center;'>
-                    <h2 style='color:#10b981; font-family:Syne,sans-serif;'>Gestión de Reservas</h2>
-                    <p style='color:#8b949e; margin-top:1rem;'>Panel de reservas para el socio.</p><br>
-                    <a href='" . BASE_URL . "index.php?url=socio/dashboard' style='color:#cca462; font-weight:bold; text-decoration:none;'>← Volver al Dashboard</a>
-                  </div>";
+            echo "No se encontró la vista reservas.php";
         }
     }
 
@@ -84,12 +189,6 @@ class SocioController {
         $archivoVista = dirname(__DIR__) . '/views/socio/mi_hotel.php';
         if (file_exists($archivoVista)) {
             require_once $archivoVista;
-        } else {
-            echo "<div style='background:#05070a; color:#fff; font-family:sans-serif; padding:3rem; text-align:center;'>
-                    <h2 style='color:#10b981; font-family:Syne,sans-serif;'>Panel de Mi Propiedad</h2>
-                    <p style='color:#8b949e; margin-top:1rem;'>El enlace funciona correctamente. Aquí cargará la gestión de tu hotel.</p><br>
-                    <a href='" . BASE_URL . "index.php?url=socio/dashboard' style='color:#cca462; font-weight:bold; text-decoration:none;'>← Volver al Dashboard</a>
-                  </div>";
         }
     }
 
@@ -113,6 +212,9 @@ class SocioController {
         }
         if ($name === 'crear' || $name === 'crear-habitacion') {
             return $this->crearHabitacion();
+        }
+        if ($name === 'editar-habitacion' || $name === 'editar_habitacion') {
+            return $this->editarHabitacion();
         }
     }
 }

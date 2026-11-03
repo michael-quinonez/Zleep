@@ -20,7 +20,6 @@ if (isset($esSocioVariable)) {
     }
 }
 
-$habitaciones = isset($habitaciones) ? $habitaciones : [];
 $reservas = isset($reservas) ? $reservas : [];
 ?>
 <!DOCTYPE html>
@@ -56,12 +55,6 @@ $reservas = isset($reservas) ? $reservas : [];
         .tarjeta-emergencia.fuego:hover .btn-tarjeta-alerta { background: #f59e0b; border-color: #f59e0b; color: #000; }
         .tarjeta-emergencia.robo:hover { border-color: #f43f5e; box-shadow: 0 0 15px rgba(244, 63, 94, 0.15); }
         .tarjeta-emergencia.robo:hover .btn-tarjeta-alerta { background: #f43f5e; border-color: #f43f5e; color: #fff; }
-        .grid-dashboard-bottom { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; }
-        @media (max-width: 1024px) { .grid-dashboard-bottom { grid-template-columns: 1fr; } }
-        .panel-box { background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 2rem; }
-        .tabla-habitaciones { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .tabla-habitaciones th { text-align: left; padding: 0.8rem 0.5rem; color: #8b949e; font-size: 0.75rem; letter-spacing: 1px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-        .tabla-habitaciones td { padding: 1rem 0.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.04); font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -110,6 +103,10 @@ $reservas = isset($reservas) ? $reservas : [];
                     <a href="<?= BASE_URL ?>index.php?url=reservas" class="nav-item" style="color: #8b949e; display: flex; align-items: center; gap: 0.8rem; text-decoration: none;">
                         <span class="material-icons-round">bed</span>
                         <span class="nav-text">Reservas</span>
+                    </a>
+                    <a href="javascript:void(0)" onclick="abrirModalServicioHabitacion()" class="nav-item" style="color: #8b949e; display: flex; align-items: center; gap: 0.8rem; text-decoration: none;">
+                        <span class="material-icons-round">room_service</span>
+                        <span class="nav-text">Servicio a la Habitación</span>
                     </a>
                     <a href="<?= BASE_URL ?>index.php?url=emergencias" class="nav-item" style="color: #8b949e; display: flex; align-items: center; gap: 0.8rem; text-decoration: none;">
                         <span class="material-icons-round">near_me</span>
@@ -194,66 +191,141 @@ $reservas = isset($reservas) ? $reservas : [];
                     <span class="material-icons-round" style="font-size: 2.2rem; color: #10b981; margin-bottom: 0.8rem;">medical_services</span>
                     <h3 style="color: #fff; font-family: 'Syne', sans-serif; margin: 0 0 0.4rem 0;">Asistencia Médica</h3>
                     <p style="color: #8b949e; font-size: 0.85rem; margin: 0 0 1.5rem 0;">Protocolo de acción rápida</p>
-                    <button type="button" class="btn-tarjeta-alerta" onclick="alert('⚠️ ALERTA ACTIVADA: Asistencia Médica')">Activar Alerta</button>
+                    <button type="button" class="btn-tarjeta-alerta" onclick="activarEmergencia('Asistencia Médica', '#10b981', 'ambulancia')">Activar Alerta</button>
                 </div>
                 <div class="tarjeta-emergencia fuego">
                     <span class="material-icons-round" style="font-size: 2.2rem; color: #f59e0b; margin-bottom: 0.8rem;">local_fire_department</span>
                     <h3 style="color: #fff; font-family: 'Syne', sans-serif; margin: 0 0 0.4rem 0;">Incendio u Evacuación</h3>
                     <p style="color: #8b949e; font-size: 0.85rem; margin: 0 0 1.5rem 0;">Contactos directos bomberos</p>
-                    <button type="button" class="btn-tarjeta-alerta" onclick="alert('⚠️ ALERTA ACTIVADA: Incendio u Evacuación')">Activar Alerta</button>
+                    <button type="button" class="btn-tarjeta-alerta" onclick="activarEmergencia('Incendio u Evacuación', '#f59e0b', 'bomberos')">Activar Alerta</button>
                 </div>
                 <div class="tarjeta-emergencia robo">
                     <span class="material-icons-round" style="font-size: 2.2rem; color: #f43f5e; margin-bottom: 0.8rem;">security</span>
                     <h3 style="color: #fff; font-family: 'Syne', sans-serif; margin: 0 0 0.4rem 0;">Intrusión / Robo</h3>
                     <p style="color: #8b949e; font-size: 0.85rem; margin: 0 0 1.5rem 0;">Aviso silencioso perimetral</p>
-                    <button type="button" class="btn-tarjeta-alerta" onclick="alert('⚠️ ALERTA ACTIVADA: Intrusión / Robo')">Activar Alerta</button>
+                    <button type="button" class="btn-tarjeta-alerta" onclick="activarEmergencia('Intrusión / Robo', '#f43f5e', 'policia')">Activar Alerta</button>
                 </div>
             </div>
 
-            <div class="grid-dashboard-bottom">
-                <div class="panel-box">
-                    <h3 style="color: #cca462; font-family: 'Syne', sans-serif; margin: 0 0 1rem 0;">
-                        <?= $esSocio ? 'Habitaciones de mi Propiedad' : 'Disponibilidad de Habitaciones' ?>
-                    </h3>
-                    <table class="tabla-habitaciones">
-                        <thead>
-                            <tr>
-                                <th>HABITACIÓN</th>
-                                <th>CATEGORÍA</th>
-                                <th style="text-align: right;">ESTADO</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (!empty($habitaciones)): ?>
-                                <?php foreach ($habitaciones as $hab): ?>
-                                    <tr>
-                                        <td style="font-weight: 700;"><?= htmlspecialchars($hab['numero']) ?></td>
-                                        <td style="color: #cbd5e1;"><?= htmlspecialchars($hab['categoria']) ?></td>
-                                        <td style="text-align: right; font-weight: 700; color: <?= mb_strtoupper($hab['estado']) === 'OCUPADA' ? '#f43f5e' : '#cca462' ?>;">
-                                            <?= htmlspecialchars(mb_strtoupper($hab['estado'])) ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="3" style="text-align: center; color: #8b949e; padding: 1.5rem;">No hay habitaciones registradas.</td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="panel-box" style="display: flex; flex-direction: column;">
-                    <h3 style="color: #cca462; font-family: 'Syne', sans-serif; margin: 0 0 0.5rem 0;">Geolocalización de Apoyo</h3>
-                    <p style="color: #8b949e; font-size: 0.85rem; margin: 0 0 1.5rem 0;">Servicios vinculados a sus coordenadas:</p>
-                    <div onclick="abrirGeolocalizacion()" style="background: #05070a; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
-                        <span class="material-icons-round" style="font-size: 2.2rem; color: #cca462; margin-bottom: 0.5rem;">place</span>
-                        <p id="geoTexto" style="color: #8b949e; font-size: 0.85rem; margin: 0;">Fuerzas de Seguridad a 180m • Centro Médico Clínico a 1.1km</p>
-                        <span style="margin-top: 1rem; color: #cca462; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Rastrear ubicación</span>
+            <!-- BLOQUE DE RELLENO DINÁMICO (ACCIONES RÁPIDAS O PANEL DE PROPIETARIO) -->
+            <?php if ($esSocio): ?>
+                <div style="background: linear-gradient(135deg, #0d1117 0%, #161b22 100%); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px; padding: 2.5rem; margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+                    <div>
+                        <span style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Panel de Control Activo</span>
+                        <h2 style="color: #fff; font-family: 'Syne', sans-serif; font-size: 1.5rem; margin: 0.6rem 0 0.4rem 0;">Administra tu establecimiento con total fluidez</h2>
+                        <p style="color: #8b949e; font-size: 0.9rem; margin: 0; max-width: 500px;">Publica nuevas habitaciones o revisa el estado de las solicitudes de tus clientes en tiempo real desde el menú lateral.</p>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="<?= BASE_URL ?>index.php?url=socio/habitaciones" style="background: #10b981; color: #000; padding: 0.75rem 1.5rem; border-radius: 99px; font-weight: 700; text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <span class="material-icons-round">king_bed</span> Ver Habitaciones
+                        </a>
                     </div>
                 </div>
-            </div>
+            <?php else: ?>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                    <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 2rem; display: flex; align-items: center; gap: 1.2rem;">
+                        <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(204, 164, 98, 0.1); display: flex; align-items: center; justify-content: center; color: #cca462; flex-shrink: 0;">
+                            <span class="material-icons-round" style="font-size: 1.8rem;">search</span>
+                        </div>
+                        <div>
+                            <h3 style="color: #fff; font-family: 'Syne', sans-serif; margin: 0 0 0.2rem 0; font-size: 1.1rem;">Explorar Destinos</h3>
+                            <p style="color: #8b949e; font-size: 0.85rem; margin: 0 0 0.8rem 0;">Encuentra nuevos hoteles disponibles.</p>
+                            <a href="<?= BASE_URL ?>index.php?url=reservas" style="color: #cca462; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;">Buscar ahora →</a>
+                        </div>
+                    </div>
+
+                    <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 2rem; display: flex; align-items: center; gap: 1.2rem;">
+                        <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: #10b981; flex-shrink: 0;">
+                            <span class="material-icons-round" style="font-size: 1.8rem;">room_service</span>
+                        </div>
+                        <div>
+                            <h3 style="color: #fff; font-family: 'Syne', sans-serif; margin: 0 0 0.2rem 0; font-size: 1.1rem;">Servicio a la Habitación</h3>
+                            <p style="color: #8b949e; font-size: 0.85rem; margin: 0 0 0.8rem 0;">Pide alimentos, bebidas o amenidades.</p>
+                            <a href="javascript:void(0)" onclick="abrirModalServicioHabitacion()" style="color: #10b981; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;">Solicitar →</a>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </main>
+    </div>
+
+    <!-- MODAL DE EMERGENCIA PROFESIONAL -->
+    <div id="modalEmergencia" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 999999;">
+        <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; width: 90%; max-width: 460px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); overflow: hidden; text-align: center; padding: 2rem;">
+            
+            <div id="modalIconContainer" style="width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 1.2rem auto; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                <span id="modalIcon" class="material-icons-round">warning</span>
+            </div>
+
+            <h3 id="modalTitulo" style="color: #fff; font-family: 'Syne', sans-serif; font-size: 1.3rem; margin: 0 0 0.5rem 0;">Alerta Activada</h3>
+            <p id="modalTexto" style="color: #8b949e; font-size: 0.9rem; margin: 0 0 1.8rem 0; line-height: 1.5;"></p>
+
+            <button type="button" onclick="cerrarModalEmergencia()" style="background: #cca462; color: #000; border: none; width: 100%; padding: 0.8rem; border-radius: 99px; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                Entendido y Notificado
+            </button>
+        </div>
+    </div>
+
+    <!-- VENTANA MODAL: SELECTOR DE SERVICIO A LA HABITACIÓN -->
+    <div id="modalServicioHabitacion" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 999999;">
+        <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); overflow: hidden; padding: 2rem;">
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span class="material-icons-round" style="color: #cca462; font-size: 1.5rem;">room_service</span>
+                    <h3 style="margin: 0; color: #fff; font-family: 'Syne', sans-serif; font-size: 1.2rem;">Servicio a la Habitación</h3>
+                </div>
+                <button type="button" onclick="cerrarModalServicioHabitacion()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #8b949e; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <span class="material-icons-round" style="font-size: 1.1rem;">close</span>
+                </button>
+            </div>
+
+            <form onsubmit="enviarServicioHabitacion(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label style="display: block; color: #8b949e; font-size: 0.85rem; margin-bottom: 0.4rem;">Tipo de Solicitud</label>
+                    <select id="tipoServicio" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.75rem 1rem; color: #fff; font-size: 0.9rem; outline: none;">
+                        <option value="Comida y Bebidas" style="background: #0d1117;">🍔 Comida y Bebidas (Menú)</option>
+                        <option value="Toallas Adicionales" style="background: #0d1117;">🛁 Toallas y Blancos Extra</option>
+                        <option value="Limpieza de Habitación" style="background: #0d1117;">🧹 Limpieza de Habitación</option>
+                        <option value="Amenidades de Aseo" style="background: #0d1117;">🧴 Kit de Aseo / Amenidades</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; color: #8b949e; font-size: 0.85rem; margin-bottom: 0.4rem;">Número de Habitación / Sede</label>
+                    <input type="text" id="habitacionServicio" placeholder="Ej: Habitación 302" required style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.75rem 1rem; color: #fff; font-size: 0.9rem; outline: none;">
+                </div>
+
+                <div>
+                    <label style="display: block; color: #8b949e; font-size: 0.85rem; margin-bottom: 0.4rem;">Detalles u Observaciones</label>
+                    <textarea id="detalleServicio" rows="3" placeholder="Ej: Una hamburguesa sin cebolla y dos gaseosas..." style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.75rem 1rem; color: #fff; font-size: 0.9rem; outline: none; resize: none;"></textarea>
+                </div>
+
+                <button type="submit" style="background: #cca462; color: #000; border: none; width: 100%; padding: 0.8rem; border-radius: 99px; font-size: 0.9rem; font-weight: 800; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    Continuar Solicitud
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- VENTANA MODAL ESPECIALIZADA: CONFIRMACIÓN DE SERVICIO -->
+    <div id="modalConfirmacionServicio" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 999999;">
+        <div style="background: #0d1117; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; width: 90%; max-width: 460px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); overflow: hidden; text-align: center; padding: 2rem;">
+            
+            <div id="servIconContainer" style="width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 1.2rem auto; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                <span id="servIcon" class="material-icons-round">room_service</span>
+            </div>
+
+            <h3 id="servTitulo" style="color: #fff; font-family: 'Syne', sans-serif; font-size: 1.3rem; margin: 0 0 0.5rem 0;">Solicitud Recibida</h3>
+            <p id="servTexto" style="color: #8b949e; font-size: 0.9rem; margin: 0 0 1.5rem 0; line-height: 1.5;"></p>
+
+            <div id="servDetalleBox" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1rem; margin-bottom: 1.8rem; text-align: left; font-size: 0.85rem; color: #c9d1d9;">
+            </div>
+
+            <button type="button" onclick="cerrarModalConfirmacionServicio()" id="servBoton" style="background: #cca462; color: #000; border: none; width: 100%; padding: 0.8rem; border-radius: 99px; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                Entendido y Notificado
+            </button>
+        </div>
     </div>
 
     <!-- VENTANA MODAL: SOBRE NOSOTROS -->
@@ -275,15 +347,9 @@ $reservas = isset($reservas) ? $reservas : [];
                     <p style="margin: 0 0 1rem 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
                         <strong style="color: #10b981;">Zleep para Socios</strong> es la herramienta de gestión diseñada para darte el control total de tu establecimiento hotelero. Podrás publicar y editar tus habitaciones, consultar el estado de ocupación y supervisar todas las reservas recibidas en tiempo real.
                     </p>
-                    <p style="margin: 0 0 1.5rem 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
-                        Además, la plataforma te integra directamente a un sistema de geolocalización y botones de alerta inmediata para brindar la mayor seguridad y respaldo a tu propiedad y a tus huéspedes.
-                    </p>
                 <?php else: ?>
                     <p style="margin: 0 0 1rem 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
-                        <strong style="color: #cca462;">Zleep</strong> es tu plataforma ideal para buscar y reservar hospedajes con total confianza. Encuentra la habitación perfecta para tus viajes, verifica la disponibilidad al instante y gestiona todas tus reservas fácilmente.
-                    </p>
-                    <p style="margin: 0 0 1.5rem 0; line-height: 1.65; color: #9ca3af; font-size: 0.9rem;">
-                        Pensando en tu bienestar, Zleep te ofrece un sistema de apoyo en tiempo real con alertas de emergencia (médica, incendio o seguridad) e integración con mapa de ubicación.
+                        <strong style="color: #cca462;">Zleep</strong> es tu plataforma ideal para buscar y reservar hospedajes con total confianza. Encuentra la habitación perfecta para tus viajes y gestiona todas tus reservas fácilmente.
                     </p>
                 <?php endif; ?>
 
@@ -360,6 +426,9 @@ $reservas = isset($reservas) ? $reservas : [];
     </div>
 
     <script>
+        let activeAudioCtx = null;
+        let sirenLoopInterval = null;
+
         function toggleSidebar() {
             const sidebar = document.getElementById('mainSidebar');
             const toggleIcon = document.getElementById('toggleIcon');
@@ -371,21 +440,209 @@ $reservas = isset($reservas) ? $reservas : [];
             }
         }
 
-        function abrirGeolocalizacion() {
-            const texto = document.getElementById('geoTexto');
-            texto.textContent = "Obteniendo coordenadas...";
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(pos) {
-                        texto.textContent = `Ubicación detectada (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
-                        window.open(`https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`, '_blank');
-                    },
-                    function() {
-                        texto.textContent = "Ubicación desactivada. Abriendo mapa general...";
-                        window.open('https://www.google.com/maps', '_blank');
-                    }
-                );
+        function abrirModalServicioHabitacion() {
+            document.getElementById('modalServicioHabitacion').style.display = 'flex';
+        }
+
+        function cerrarModalServicioHabitacion() {
+            document.getElementById('modalServicioHabitacion').style.display = 'none';
+        }
+
+        function enviarServicioHabitacion(event) {
+            event.preventDefault();
+            const tipo = document.getElementById('tipoServicio').value;
+            const habitacion = document.getElementById('habitacionServicio').value;
+            const detalle = document.getElementById('detalleServicio').value || 'Sin observaciones adicionales';
+
+            cerrarModalServicioHabitacion();
+
+            // Configurar diseño especializado según la opción elegida
+            const modalTitulo = document.getElementById('servTitulo');
+            const modalTexto = document.getElementById('servTexto');
+            const detalleBox = document.getElementById('servDetalleBox');
+            const iconContainer = document.getElementById('servIconContainer');
+            const icon = document.getElementById('servIcon');
+            const boton = document.getElementById('servBoton');
+
+            let colorTema = '#cca462';
+            let iconoNombre = 'room_service';
+            let mensajeExito = '';
+
+            if (tipo === 'Comida y Bebidas') {
+                colorTema = '#f59e0b'; // Naranja alimentos
+                iconoNombre = 'restaurant';
+                modalTitulo.textContent = 'PEDIDO DE COCINA ENVIADO';
+                mensajeExito = 'Tu orden de alimentos y bebidas ha sido directa al área de restaurante y bar.';
+            } else if (tipo === 'Toallas Adicionales') {
+                colorTema = '#3b82f6'; // Azul blancos
+                iconoNombre = 'hot_tub';
+                modalTitulo.textContent = 'SOLICITUD DE BLANCOS';
+                mensajeExito = 'El equipo de ropería preparará toallas y lencería limpia para tu habitación.';
+            } else if (tipo === 'Limpieza de Habitación') {
+                colorTema = '#10b981'; // Verde limpieza
+                iconoNombre = 'cleaning_services';
+                modalTitulo.textContent = 'TURNO DE ASEO SOLICITADO';
+                mensajeExito = 'Se ha programado el servicio de limpieza y ordenamiento para tu cuarto.';
+            } else {
+                colorTema = '#8b5cf6'; // Violeta amenidades
+                iconoNombre = 'spa';
+                modalTitulo.textContent = 'KIT DE ASEO EN CAMINO';
+                mensajeExito = 'Tus amenidades de baño y artículos personales están siendo despachados.';
             }
+
+            iconContainer.style.background = colorTema + '20';
+            iconContainer.style.color = colorTema;
+            icon.textContent = iconoNombre;
+            boton.style.background = colorTema;
+            if(tipo === 'Comida y Bebidas' || tipo === 'Amenidades de Aseo') {
+                boton.style.color = '#000';
+            } else {
+                boton.style.color = '#fff';
+            }
+
+            modalTexto.textContent = mensajeExito;
+            detalleBox.innerHTML = `
+                <div style="margin-bottom: 0.4rem;"><strong style="color: #fff;">Servicio:</strong> ${tipo}</div>
+                <div style="margin-bottom: 0.4rem;"><strong style="color: #fff;">Ubicación:</strong> ${habitacion}</div>
+                <div><strong style="color: #fff;">Detalles:</strong> ${detalle}</div>
+            `;
+
+            document.getElementById('modalConfirmacionServicio').style.display = 'flex';
+            
+            // Limpiar formulario
+            document.getElementById('habitacionServicio').value = '';
+            document.getElementById('detalleServicio').value = '';
+        }
+
+        function cerrarModalConfirmacionServicio() {
+            document.getElementById('modalConfirmacionServicio').style.display = 'none';
+        }
+
+        function activarEmergencia(tipo, color, sonidoTipo) {
+            cerrarModalEmergencia();
+
+            try {
+                activeAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                const playBurst = () => {
+                    if (!activeAudioCtx || activeAudioCtx.state === 'closed') return;
+                    
+                    const now = activeAudioCtx.currentTime;
+                    const osc1 = activeAudioCtx.createOscillator();
+                    const osc2 = activeAudioCtx.createOscillator();
+                    const filter = activeAudioCtx.createBiquadFilter();
+                    const gainNode = activeAudioCtx.createGain();
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1200, now);
+
+                    if (sonidoTipo === 'ambulancia') {
+                        osc1.type = 'sine';
+                        osc2.type = 'triangle';
+                        osc2.detune.setValueAtTime(-10, now);
+
+                        osc1.frequency.setValueAtTime(480, now);
+                        osc1.frequency.linearRampToValueAtTime(720, now + 0.9);
+                        osc1.frequency.linearRampToValueAtTime(480, now + 1.8);
+
+                        osc2.frequency.setValueAtTime(480, now);
+                        osc2.frequency.linearRampToValueAtTime(720, now + 0.9);
+                        osc2.frequency.linearRampToValueAtTime(480, now + 1.8);
+
+                        gainNode.gain.setValueAtTime(0.25, now);
+                        gainNode.gain.setValueAtTime(0.25, now + 1.7);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+                    } else if (sonidoTipo === 'bomberos') {
+                        osc1.type = 'sawtooth';
+                        osc2.type = 'triangle';
+                        osc2.detune.setValueAtTime(5, now);
+
+                        osc1.frequency.setValueAtTime(300, now);
+                        osc1.frequency.linearRampToValueAtTime(550, now + 0.8);
+                        osc1.frequency.linearRampToValueAtTime(300, now + 1.6);
+
+                        osc2.frequency.setValueAtTime(300, now);
+                        osc2.frequency.linearRampToValueAtTime(550, now + 0.8);
+                        osc2.frequency.linearRampToValueAtTime(300, now + 1.6);
+
+                        gainNode.gain.setValueAtTime(0.3, now);
+                        gainNode.gain.setValueAtTime(0.3, now + 1.5);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+
+                    } else if (sonidoTipo === 'policia') {
+                        osc1.type = 'sawtooth';
+                        osc2.type = 'sine';
+                        osc2.detune.setValueAtTime(-15, now);
+
+                        osc1.frequency.setValueAtTime(600, now);
+                        osc1.frequency.linearRampToValueAtTime(950, now + 0.4);
+                        osc1.frequency.setValueAtTime(950, now + 0.4);
+                        osc1.frequency.linearRampToValueAtTime(600, now + 0.8);
+
+                        osc2.frequency.setValueAtTime(600, now);
+                        osc2.frequency.linearRampToValueAtTime(950, now + 0.4);
+                        osc2.frequency.setValueAtTime(950, now + 0.4);
+                        osc2.frequency.linearRampToValueAtTime(600, now + 0.8);
+
+                        gainNode.gain.setValueAtTime(0.2, now);
+                        gainNode.gain.setValueAtTime(0.2, now + 0.7);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                    }
+
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(activeAudioCtx.destination);
+
+                    const duration = (sonidoTipo === 'policia') ? 0.8 : (sonidoTipo === 'bomberos' ? 1.6 : 1.8);
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + duration);
+                    osc2.stop(now + duration);
+                };
+
+                playBurst();
+                const intervalTime = (sonidoTipo === 'policia') ? 850 : (sonidoTipo === 'bomberos' ? 1650 : 1850);
+                sirenLoopInterval = setInterval(playBurst, intervalTime);
+
+            } catch (e) {
+                console.log("Audio bloqueado o no soportado por el navegador");
+            }
+
+            const modal = document.getElementById('modalEmergencia');
+            const modalTitulo = document.getElementById('modalTitulo');
+            const modalTexto = document.getElementById('modalTexto');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalIconContainer = document.getElementById('modalIconContainer');
+
+            modalTitulo.textContent = "ALERTA INSTITUCIONAL: " + tipo;
+            modalTexto.innerHTML = "El protocolo de emergencia para <strong style='color: #fff;'>" + tipo + "</strong> ha sido emitido de manera exitosa. La central de seguridad y monitoreo ha recibido el aviso perimetral y continuará con la alerta sonora activa.";
+            
+            modalIconContainer.style.background = color + "20";
+            modalIconContainer.style.color = color;
+            
+            if(tipo.includes('Médica')) {
+                modalIcon.textContent = 'medical_services';
+            } else if(tipo.includes('Incendio')) {
+                modalIcon.textContent = 'local_fire_department';
+            } else {
+                modalIcon.textContent = 'security';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function cerrarModalEmergencia() {
+            if (sirenLoopInterval) {
+                clearInterval(sirenLoopInterval);
+                sirenLoopInterval = null;
+            }
+            if (activeAudioCtx) {
+                activeAudioCtx.close().catch(() => {});
+                activeAudioCtx = null;
+            }
+            document.getElementById('modalEmergencia').style.display = 'none';
         }
 
         function abrirModalNosotros() {

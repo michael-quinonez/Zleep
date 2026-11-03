@@ -5,24 +5,6 @@ if (session_status() === PHP_SESSION_NONE) {
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/zleep/');
 }
-
-$error = '';
-$exito = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $numero    = trim($_POST['numero_habitacion'] ?? '');
-    $categoria = trim($_POST['tipo_habitacion'] ?? '');
-    $precio    = floatval($_POST['precio'] ?? 0);
-
-    if (empty($numero) || empty($categoria)) {
-        $error = "Por favor completa todos los campos obligatorios.";
-    } elseif ($precio <= 0) {
-        $error = "El precio de la noche debe ser mayor a cero.";
-    } else {
-        // Lógica de guardado exitosa
-        $exito = "¡Habitación publicada exitosamente!";
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -179,22 +161,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form action="<?= BASE_URL ?>index.php?url=socio/crear" method="POST">
                 <div class="form-group">
-                    <label for="numero_habitacion">Número o Nombre de Habitación</label>
-                    <input type="text" id="numero_habitacion" name="numero_habitacion" placeholder="Ej. Suite 202" required>
+                    <label for="numero">Número o Nombre de Habitación</label>
+                    <input type="text" id="numero" name="numero" placeholder="Ej. Suite 202" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="tipo_habitacion">Tipo de Habitación</label>
-                    <select id="tipo_habitacion" name="tipo_habitacion">
-                        <option value="individual">Individual</option>
-                        <option value="doble">Doble</option>
-                        <option value="suite">Suite Presidencial</option>
+                    <label for="tipo">Tipo de Habitación</label>
+                    <select id="tipo" name="tipo">
+                        <option value="Individual">Individual</option>
+                        <option value="Doble">Doble</option>
+                        <option value="Suite Presidencial">Suite Presidencial</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="precio">Precio por Noche ($)</label>
-                    <input type="number" id="precio" name="precio" step="0.01" placeholder="0.00" required>
+                    <label for="precio_noche">Precio por Noche ($)</label>
+                    <input type="number" id="precio_noche" name="precio_noche" step="0.01" placeholder="0.00" required>
                 </div>
 
                 <div class="buttons-footer">

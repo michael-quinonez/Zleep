@@ -254,7 +254,7 @@ if (!defined('BASE_URL')) {
                         <?php if (!empty($habitaciones)): ?>
                             <?php foreach ($habitaciones as $hab): ?>
                                 <option value="<?= $hab['id_habitacion'] ?>" data-hotel="<?= $hab['id_hotel'] ?>">
-                                    Habitación <?= htmlspecialchars($hab['numero']) ?> - <?= htmlspecialchars($hab['tipo'] ?? $hab['categoria'] ?? '') ?>
+                                    Habitación <?= htmlspecialchars($hab['numero']) ?> - <?= htmlspecialchars($hab['tipo'] ?? $hab['categoria'] ?? 'General') ?>
                                 </option>
                             <?php endforeach; ?>
                         <?php endif; ?>

@@ -6,7 +6,7 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', '/zleep/');
 }
 
-$nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
+$nombreHotel = $_SESSION['hotel_nombre'] ?? 'Gran Plaza';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -186,26 +186,29 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr data-id="#ZLP-4021" data-huesped="Carlos Mendoza (Tel: 300 1234567)" data-habitacion="Suite 202" data-fechas="12 Oct 2026 - 15 Oct 2026" data-estado="Confirmada" data-req="Cama extra, alérgico a las plumas, llegada estimada a las 10:00 PM.">
-                            <td style="color: #cca462; font-weight: 700;">#ZLP-4021</td>
-                            <td>Carlos Mendoza</td>
-                            <td>Suite 202</td>
-                            <td>12 Oct 2026 - 15 Oct 2026</td>
-                            <td><span class="badge-status">Confirmada</span></td>
-                            <td style="text-align: right;">
-                                <button onclick="verDetalles(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Detalles</button>
-                            </td>
-                        </tr>
-                        <tr data-id="#ZLP-4025" data-huesped="Lucía Fernández (Tel: 310 9876543)" data-habitacion="Habitación Doble 104" data-fechas="18 Oct 2026 - 20 Oct 2026" data-estado="Confirmada" data-req="Ninguna necesidad especial registrada. Estancia corporativa.">
-                            <td style="color: #cca462; font-weight: 700;">#ZLP-4025</td>
-                            <td>Lucía Fernández</td>
-                            <td>Habitación Doble 104</td>
-                            <td>18 Oct 2026 - 20 Oct 2026</td>
-                            <td><span class="badge-status">Confirmada</span></td>
-                            <td style="text-align: right;">
-                                <button onclick="verDetalles(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Detalles</button>
-                            </td>
-                        </tr>
+                        <?php if (!empty($reservas)): ?>
+                            <?php foreach ($reservas as $res): ?>
+                                <tr data-id="#ZLP-<?= htmlspecialchars($res['id_reserva']) ?>" 
+                                    data-huesped="<?= htmlspecialchars($res['nombre_huesp'] ?? 'Cliente General') ?>" 
+                                    data-habitacion="Habitación <?= htmlspecialchars($res['numero_habitacion'] ?? 'N/A') ?> (<?= htmlspecialchars($res['tipo_habitacion'] ?? 'Estándar') ?>)" 
+                                    data-fechas="<?= htmlspecialchars($res['fecha_checkin']) ?> al <?= htmlspecialchars($res['fecha_checkout']) ?>" 
+                                    data-estado="<?= htmlspecialchars($res['estado_reserva']) ?>" 
+                                    data-req="<?= htmlspecialchars($res['requerimientos'] ?? 'Ninguna necesidad especial registrada.') ?>">
+                                    <td style="color: #cca462; font-weight: 700;">#ZLP-<?= htmlspecialchars($res['id_reserva']) ?></td>
+                                    <td><?= htmlspecialchars($res['nombre_huesp'] ?? 'Cliente General') ?></td>
+                                    <td>Habitación <?= htmlspecialchars($res['numero_habitacion'] ?? 'N/A') ?></td>
+                                    <td style="color: #8b949e;"><?= htmlspecialchars($res['fecha_checkin']) ?> al <?= htmlspecialchars($res['fecha_checkout']) ?></td>
+                                    <td><span class="badge-status"><?= htmlspecialchars($res['estado_reserva']) ?></span></td>
+                                    <td style="text-align: right;">
+                                        <button onclick="verDetalles(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Detalles</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #8b949e; padding: 2rem;">No hay reservas registradas en el sistema.</td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

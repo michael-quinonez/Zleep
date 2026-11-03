@@ -145,24 +145,22 @@ $nombreUsuario = $_SESSION['usuario_nombre'] ?? 'Hotelero';
             
             <!-- ACCIONES SUPERIORES -->
             <div class="header-actions">
-                <!-- Botón para volver a la página principal (puedes ajustar la ruta si tu página principal tiene otra ruta) -->
                 <a href="<?= BASE_URL ?>index.php" class="btn-home">
                     <span class="material-icons-round" style="font-size: 1.1rem;">home</span> Página Principal
                 </a>
-                <!-- Botón principal para agregar habitación -->
                 <a href="<?= BASE_URL ?>index.php?url=socio/crear" class="btn-action">
                     <span class="material-icons-round">add</span> Agregar Habitación
                 </a>
             </div>
         </div>
 
-        <!-- TARJETAS DE ESTADÍSTICAS -->
+        <!-- TARJETAS DE ESTADÍSTICAS DINÁMICAS -->
         <div class="grid-stats">
             <div class="card-stat">
                 <div class="icon-box"><span class="material-icons-round">king_bed</span></div>
                 <div>
                     <span style="color: #8b949e; font-size: 0.8rem;">Habitaciones Totales</span>
-                    <h2 style="margin: 0; font-family: 'Syne', sans-serif;">12</h2>
+                    <h2 style="margin: 0; font-family: 'Syne', sans-serif;"><?= $totalHabitaciones ?? 0 ?></h2>
                 </div>
             </div>
             <div class="card-stat">
@@ -171,7 +169,7 @@ $nombreUsuario = $_SESSION['usuario_nombre'] ?? 'Hotelero';
                 </div>
                 <div>
                     <span style="color: #8b949e; font-size: 0.8rem;">Disponibles</span>
-                    <h2 style="margin: 0; font-family: 'Syne', sans-serif;">8</h2>
+                    <h2 style="margin: 0; font-family: 'Syne', sans-serif; color: #cca462;"><?= $totalDisponibles ?? 0 ?></h2>
                 </div>
             </div>
             <div class="card-stat">
@@ -180,7 +178,7 @@ $nombreUsuario = $_SESSION['usuario_nombre'] ?? 'Hotelero';
                 </div>
                 <div>
                     <span style="color: #8b949e; font-size: 0.8rem;">Ocupadas</span>
-                    <h2 style="margin: 0; font-family: 'Syne', sans-serif;">4</h2>
+                    <h2 style="margin: 0; font-family: 'Syne', sans-serif; color: #f43f5e;"><?= $totalOcupadas ?? 0 ?></h2>
                 </div>
             </div>
         </div>
@@ -198,12 +196,10 @@ $nombreUsuario = $_SESSION['usuario_nombre'] ?? 'Hotelero';
             <div class="panel-box">
                 <h3 style="font-family: 'Syne', sans-serif; color: #cca462; margin-top: 0;">Accesos Rápidos</h3>
                 <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem;">
-                    <!-- Enlace conectado al listado de habitaciones -->
                     <a href="<?= BASE_URL ?>index.php?url=socio/habitaciones" class="quick-link">
                         <span>Ver mis habitaciones</span>
                         <span class="material-icons-round" style="font-size: 1.1rem; color: #10b981;">arrow_forward</span>
                     </a>
-                    <!-- Enlace conectado a la edición del hotel -->
                     <a href="<?= BASE_URL ?>index.php?url=socio/miHotel" class="quick-link">
                         <span>Mi Propiedad (Editar datos del hotel)</span>
                         <span class="material-icons-round" style="font-size: 1.1rem; color: #cca462;">edit</span>

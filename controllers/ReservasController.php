@@ -67,6 +67,12 @@ class ReservasController {
         require_once __DIR__ . '/../views/reservas/index.php';
     }
 
+    // MÉTODO MODIFICADO PARA REDIRIGIR A RESERVAS Y EVITAR ERRORES
+    public function buscar() {
+        header("Location: " . BASE_URL . "index.php?url=reservas");
+        exit();
+    }
+
     public function crear() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_cliente     = $_SESSION['usuario_id'] ?? $_SESSION['user_id'] ?? 1;

@@ -85,7 +85,7 @@ class AuthController {
             if (empty($nombre) || empty($email) || empty($password)) {
                 $error = "Por favor completa todos los campos.";
             } elseif (!preg_match($patronPassword, $password)) {
-                $error = ""; 
+                $error = "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial."; 
             } else {
                 $userModel = new Usuario();
                 
@@ -141,7 +141,7 @@ class AuthController {
             if (empty($nombre) || empty($email) || empty($password) || empty($nombre_hotel) || empty($nit) || empty($direccion)) {
                 $error = "Por favor completa todos los campos obligatorios.";
             } elseif (!preg_match($patronPassword, $password)) {
-                $error = ""; 
+                $error = "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial."; 
             } elseif (strlen($nombre_hotel) < 4 || strlen($direccion) < 6) {
                 $error = "El nombre del hotel (mínimo 4 caracteres) y la dirección deben ser reales.";
             } elseif (!preg_match('/^[0-9\-]+$/', $nit) || strlen($nit) < 6) {
@@ -168,7 +168,7 @@ class AuthController {
                             $stmtUser->execute([$nombre, $email, password_hash($password, PASSWORD_DEFAULT), $rol_id]);
                             $usuario_id = $pdo->lastInsertId();
 
-                            // 2. Inserción de los datos del hotel
+                            // 2. Inserción de los datos del hotel vinculados al usuario_id
                             $stmtHotel = $pdo->prepare("INSERT INTO hoteles (usuario_id, nombre, nit, direccion, ciudad) VALUES (?, ?, ?, ?, ?)");
                             $stmtHotel->execute([$usuario_id, $nombre_hotel, $nit, $direccion, 'Bogotá']);
                             $id_hotel = $pdo->lastInsertId();

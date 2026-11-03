@@ -30,7 +30,7 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
         }
         .full-page-container {
             width: 100%;
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 2.5rem 2rem;
         }
@@ -160,7 +160,7 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
             font-weight: 700;
             text-transform: uppercase;
         }
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 0.8rem 1rem;
             background: #05070a;
@@ -171,7 +171,7 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
             font-size: 0.95rem;
             outline: none;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        .form-group input:focus, .form-group select:focus {
             border-color: #10b981;
         }
     </style>
@@ -184,10 +184,10 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
         <div class="top-bar">
             <div>
                 <h1 style="font-family: 'Syne', sans-serif; font-size: 2.2rem; margin: 0 0 0.3rem 0; color: #fff;">
-                    Gestión de Cuartos y Ocupación
+                    Gestión de Cuartos
                 </h1>
                 <p style="color: #8b949e; font-size: 0.95rem; margin: 0;">
-                    Supervisa habitaciones, huéspedes actuales y necesidades de <span style="color: #10b981; font-weight: 700;"><?= htmlspecialchars($nombreHotel) ?></span>
+                    Administra las habitaciones registradas de <span style="color: #10b981; font-weight: 700;"><?= htmlspecialchars($nombreHotel) ?></span>
                 </p>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
@@ -204,9 +204,9 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
         <!-- TABLA DE GESTIÓN DE CUARTOS -->
         <div class="card-box">
             <h3 style="font-family: 'Syne', sans-serif; color: #10b981; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
-                <span class="material-icons-round">king_bed</span> Listado General de Habitaciones y Huéspedes
+                <span class="material-icons-round">king_bed</span> Listado de Habitaciones
             </h3>
-            <p style="color: #8b949e; font-size: 0.9rem; margin-bottom: 1.5rem;">Control en tiempo real del estado de cada cuarto, detalles de quien reservó y requerimientos especiales.</p>
+            <p style="color: #8b949e; font-size: 0.9rem; margin-bottom: 1.5rem;">Control directo del inventario de cuartos, categorías y estados de disponibilidad.</p>
 
             <div class="table-container">
                 <table>
@@ -215,8 +215,6 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
                             <th>Habitación</th>
                             <th>Tipo / Categoría</th>
                             <th>Estado</th>
-                            <th>Huésped (Quién Reservó)</th>
-                            <th>Necesidades / Requerimientos</th>
                             <th style="text-align: right;">Acciones</th>
                         </tr>
                     </thead>
@@ -224,30 +222,21 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
                         <?php if (!empty($habitaciones)): ?>
                             <?php foreach ($habitaciones as $hab): ?>
                                 <?php 
-                                    $tieneReserva = !empty($hab['id_reserva']);
-                                    $estadoTexto = $tieneReserva ? 'Ocupada' : 'Disponible';
-                                    $claseEstado = $tieneReserva ? 'badge-ocupada hab-estado' : 'badge-disponible hab-estado';
+                                    $estadoTexto = $hab['estado_habitacion'] ?? 'Disponible';
+                                    $claseEstado = ($estadoTexto === 'Ocupada') ? 'badge-ocupada hab-estado' : 'badge-disponible hab-estado';
                                 ?>
-                                <tr>
-                                    <td style="font-weight: 700; color: #cca462;" class="hab-nombre">Habitación <?= htmlspecialchars($hab['numero']) ?></td>
-                                    <td class="hab-tipo"><?= htmlspecialchars($hab['categoria'] ?? 'Estándar') ?></td>
+                                <tr data-id="<?= $hab['id_habitacion'] ?>">
+                                    <td style="font-weight: 700; color: #cca462;" class="hab-nombre"><?= htmlspecialchars($hab['numero']) ?></td>
+                                    <td class="hab-tipo"><?= htmlspecialchars($hab['tipo'] ?? 'Estándar') ?></td>
                                     <td><span class="<?= $claseEstado ?>"><?= $estadoTexto ?></span></td>
-                                    <td class="hab-huesped">
-                                        <?php if ($tieneReserva): ?>
-                                            <?= htmlspecialchars($hab['nombre_huesp'] ?? 'Huésped') ?> (Tel: <?= htmlspecialchars($hab['telefono_huesp'] ?? 'No registrado') ?>)
-                                        <?php else: ?>
-                                            Sin reserva actual
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="hab-req" style="color: #8b949e; font-size: 0.9rem;"><?= htmlspecialchars($hab['requerimientos'] ?? 'Ninguna') ?></td>
                                     <td style="text-align: right;">
-                                        <button onclick="abrirModal(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Editar</button>
+                                        <button type="button" onclick="abrirModal(this)" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700;">Editar</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" style="text-align: center; color: #8b949e; padding: 2rem;">No hay habitaciones registradas en el sistema.</td>
+                                <td colspan="4" style="text-align: center; color: #8b949e; padding: 2rem;">No hay habitaciones registradas en el sistema.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -263,25 +252,22 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
             <h3 style="font-family: 'Syne', sans-serif; color: #10b981; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
                 <span class="material-icons-round">edit</span> Editar Habitación
             </h3>
-            <form id="formEditar" onsubmit="guardarEdicion(event)">
+            <form action="<?= BASE_URL ?>index.php?url=socio/editar-habitacion" method="POST">
+                <input type="hidden" id="editId" name="id_habitacion">
                 <div class="form-group">
                     <label>Número o Nombre del Cuarto</label>
-                    <input type="text" id="editNombre" required>
+                    <input type="text" id="editNombre" name="numero" required>
                 </div>
                 <div class="form-group">
                     <label>Tipo / Categoría</label>
-                    <input type="text" id="editTipo" required>
+                    <input type="text" id="editTipo" name="tipo" required>
                 </div>
                 <div class="form-group">
                     <label>Estado Actual</label>
-                    <select id="editEstado">
+                    <select id="editEstado" name="estado">
                         <option value="Disponible">Disponible</option>
                         <option value="Ocupada">Ocupada</option>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label>Huésped / Requerimientos</label>
-                    <textarea id="editReq" rows="3"></textarea>
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 1.8rem;">
                     <button type="submit" style="flex: 1; background: #10b981; color: #000; padding: 0.8rem; border-radius: 10px; font-weight: 800; border: none; cursor: pointer;">Guardar Cambios</button>
@@ -292,47 +278,24 @@ $nombreHotel = $_SESSION['hotel_nombre'] ?? 'Mi Hotel';
     </div>
 
     <script>
-        let filaSeleccionada = null;
-
         function abrirModal(button) {
-            filaSeleccionada = button.closest('tr');
+            let fila = button.closest('tr');
+            let idHabitacion = fila.getAttribute('data-id');
             
-            // Extraer valores de la fila actual
-            let nombre = filaSeleccionada.querySelector('.hab-nombre').innerText;
-            let tipo = filaSeleccionada.querySelector('.hab-tipo').innerText;
-            let estado = filaSeleccionada.querySelector('.hab-estado').innerText;
-            let req = filaSeleccionada.querySelector('.hab-req').innerText;
+            let numero = fila.querySelector('.hab-nombre').innerText;
+            let tipo = fila.querySelector('.hab-tipo').innerText;
+            let estado = fila.querySelector('.hab-estado').innerText;
 
-            // Rellenar el modal
-            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editId').value = idHabitacion;
+            document.getElementById('editNombre').value = numero;
             document.getElementById('editTipo').value = tipo;
             document.getElementById('editEstado').value = estado;
-            document.getElementById('editReq').value = req;
 
-            // Mostrar modal
             document.getElementById('modalEditar').style.display = 'flex';
         }
 
         function cerrarModal() {
             document.getElementById('modalEditar').style.display = 'none';
-            filaSeleccionada = null;
-        }
-
-        function guardarEdicion(event) {
-            event.preventDefault();
-            if (filaSeleccionada) {
-                // Actualizar los datos visualmente en la tabla
-                filaSeleccionada.querySelector('.hab-nombre').innerText = document.getElementById('editNombre').value;
-                filaSeleccionada.querySelector('.hab-tipo').innerText = document.getElementById('editTipo').value;
-                
-                let nuevoEstado = document.getElementById('editEstado').value;
-                let spanEstado = filaSeleccionada.querySelector('.hab-estado');
-                spanEstado.innerText = nuevoEstado;
-                spanEstado.className = nuevoEstado === 'Ocupada' ? 'badge-ocupada hab-estado' : 'badge-disponible hab-estado';
-                
-                filaSeleccionada.querySelector('.hab-req').innerText = document.getElementById('editReq').value;
-            }
-            cerrarModal();
         }
     </script>
 </body>
